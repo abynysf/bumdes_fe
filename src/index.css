@@ -1,0 +1,65 @@
+@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto+Slab:wght@100..900&display=swap");
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, Segoe UI,
+    Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+/* Global base styles */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom components */
+@layer components {
+  .max-container {
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  .input {
+    @apply sm:flex-1 max-sm:w-full text-base leading-normal text-slate-500 pl-5 max-sm:p-5 outline-none sm:border-none border max-sm:border-slate-400 max-sm:rounded-full;
+  }
+}
+
+/* Custom utilities */
+@layer utilities {
+  .padding {
+    @apply sm:px-16 px-8 sm:py-24 py-12;
+  }
+  .padding-x {
+    @apply sm:px-16 px-8;
+  }
+  .padding-y {
+    @apply sm:py-24 py-12;
+  }
+  .padding-l {
+    @apply sm:pl-16 pl-8;
+  }
+  .padding-r {
+    @apply sm:pr-16 pr-8;
+  }
+  .padding-t {
+    @apply sm:pt-24 pt-12;
+  }
+  .padding-b {
+    @apply sm:pb-24 pb-12;
+  }
+
+  .info-text {
+    @apply text-slate-500 text-lg leading-7;
+    font-family: "Montserrat", sans-serif;
+  }
+}
