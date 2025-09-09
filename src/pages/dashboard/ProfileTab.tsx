@@ -83,7 +83,9 @@ export default function ProfileTab() {
             <Input
               placeholder="Placeholder"
               value={form.namaLengkap}
-              onChange={(e) => update("namaLengkap", e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                update("namaLengkap", e.target.value)
+              }
               className="rounded-lg text-neutral-900"
             />
             <p className="mt-1 text-xs text-neutral-400">
@@ -119,7 +121,7 @@ export default function ProfileTab() {
               type="number"
               placeholder="YYYY"
               value={form.tahunPendirian ?? ""}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 update(
                   "tahunPendirian",
                   e.target.value === "" ? "" : Number(e.target.value)
@@ -149,66 +151,95 @@ export default function ProfileTab() {
       <div className="col-span-12 space-y-6 lg:col-span-4">
         {/* Counts */}
         <Card className="rounded-xl border bg-white shadow-sm">
-          <Card.Body className="space-y-3">
+          <Card.Body className="space-y-3 text-neutral-700">
+            <span>Jumlah Pengurus BUM Desa</span>
             <Input
               placeholder="Total"
               type="number"
               value={form.jumlahPengurus ?? ""}
-              onChange={(e) =>
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 update(
                   "jumlahPengurus",
                   e.target.value === "" ? "" : Number(e.target.value)
                 )
               }
-              className="rounded-lg"
+              className="rounded-lg text-neutral-900"
             />
             <div className="grid grid-cols-2 gap-3">
-              <Input
-                placeholder="Laki-laki"
-                type="number"
-                value={form.pengurusL ?? ""}
-                onChange={(e) =>
-                  update(
-                    "pengurusL",
-                    e.target.value === "" ? "" : Number(e.target.value)
-                  )
-                }
-                className="rounded-lg"
-              />
-              <Input
-                placeholder="Perempuan"
-                type="number"
-                value={form.pengurusP ?? ""}
-                onChange={(e) =>
-                  update(
-                    "pengurusP",
-                    e.target.value === "" ? "" : Number(e.target.value)
-                  )
-                }
-                className="rounded-lg"
-              />
+              {/* <span>Jumlah Laki-laki</span> */}
+              <div>
+                <label className="mb-1 block text-xs text-neutral-700">
+                  Jumlah Pengurus Laki-laki
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Laki-laki"
+                  value={form.tahunPendirian ?? ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    update(
+                      "tahunPendirian",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
+                  className="rounded-lg text-neutral-900"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs text-neutral-700">
+                  Jumlah Pengurus Perempuan
+                </label>
+                <Input
+                  placeholder="Perempuan"
+                  type="number"
+                  value={form.pengurusP ?? ""}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    update(
+                      "pengurusP",
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
+                  }
+                  className="rounded-lg"
+                />
+              </div>
             </div>
           </Card.Body>
         </Card>
 
         {/* Rekening list */}
-        <Card className="rounded-xl border bg-white shadow-sm">
-          <Card.Header>Rekening BUM Desa</Card.Header>
-          <Card.Body>
+        <Card className="rounded-xl bg-white shadow-md ring-1 ring-neutral-200">
+          <Card.Header className="px-6 py-4 text-lg font-semibold text-neutral-900 border-b border-neutral-200">
+            Rekening BUM Desa
+          </Card.Header>
+
+          <Card.Body className="px-6 py-5">
             <Table
-              headers={["Bank", "Nomor Rekening", "Aksi"]}
+              className="text-neutral-800"
+              headers={[
+                <span key="h1" className="font-semibold text-neutral-800">
+                  Bank
+                </span>,
+                <span key="h2" className="font-semibold text-neutral-800">
+                  Nomor Rekening
+                </span>,
+                <span key="h3" className="font-semibold text-neutral-800">
+                  Aksi
+                </span>,
+              ]}
               rows={
                 rekening.length === 0
                   ? []
                   : rekening.map((r, idx) => [
-                      <span key="b" className="text-neutral-800">
+                      <span key={`b-${idx}`} className="text-neutral-800">
                         {r.bank}
                       </span>,
-                      <span key="n" className="font-medium text-neutral-800">
+                      <span
+                        key={`n-${idx}`}
+                        className="font-medium text-neutral-800"
+                      >
                         {r.nomor}
                       </span>,
                       <button
-                        key="a"
+                        key={`a-${idx}`}
                         onClick={() => removeRekening(idx)}
                         className="rounded p-1 hover:bg-red-50"
                         aria-label="Hapus"
@@ -220,30 +251,55 @@ export default function ProfileTab() {
               }
               emptyText="Tidak ada data yang ditambahkan"
             />
-            <div className="mt-3">
-              <Button onClick={addRekening}>Tambah Rekening</Button>
+
+            {/* muted gray button like the design */}
+            <div className="mt-4">
+              <Button
+                variant="secondary"
+                className="bg-neutral-500 text-white hover:bg-neutral-600 disabled:opacity-50 rounded-md px-4 py-2"
+                onClick={addRekening}
+              >
+                Tambah Rekening
+              </Button>
             </div>
           </Card.Body>
         </Card>
       </div>
 
       {/* Dokumen section */}
-      <Card className="col-span-12 rounded-xl border bg-white shadow-sm">
-        <Card.Header>Peraturan Desa Pendirian BUM Desa</Card.Header>
-        <Card.Body>
+      <Card className="col-span-8 rounded-xl bg-white shadow-md ring-1 ring-neutral-200">
+        <Card.Header className="px-6 py-4 text-lg font-semibold text-neutral-900 border-b border-neutral-200">
+          Peraturan Desa Pendirian BUM Desa
+        </Card.Header>
+
+        <Card.Body className="px-6 py-5">
           <Table
-            headers={["Tahun", "Nomor", "File", "Aksi"]}
+            className="text-neutral-800"
+            headers={[
+              <span key="h1" className="font-semibold text-neutral-800">
+                Tahun
+              </span>,
+              <span key="h2" className="font-semibold text-neutral-800">
+                Nomor
+              </span>,
+              <span key="h3" className="font-semibold text-neutral-800">
+                File
+              </span>,
+              <span key="h4" className="font-semibold text-neutral-800">
+                Aksi
+              </span>,
+            ]}
             rows={
               dokumen.length === 0
                 ? []
                 : dokumen.map((d, idx) => [
-                    <span key="t">{d.tahun}</span>,
-                    <span key="no">{d.nomor}</span>,
-                    <span key="f" className="text-neutral-700">
+                    <span key={`t-${idx}`}>{d.tahun}</span>,
+                    <span key={`no-${idx}`}>{d.nomor}</span>,
+                    <span key={`f-${idx}`} className="text-neutral-700">
                       {d.file}
                     </span>,
                     <button
-                      key="a"
+                      key={`a-${idx}`}
                       onClick={() => removeDokumen(idx)}
                       className="rounded p-1 hover:bg-red-50"
                       aria-label="Hapus"
@@ -255,8 +311,13 @@ export default function ProfileTab() {
             }
             emptyText="Tidak ada data yang ditambahkan"
           />
-          <div className="mt-3">
-            <Button variant="secondary" onClick={addDokumen}>
+
+          <div className="mt-4">
+            <Button
+              variant="secondary"
+              className="bg-neutral-500 text-white hover:bg-neutral-600 rounded-md px-4 py-2"
+              onClick={addDokumen}
+            >
               Tambah Dokumen
             </Button>
           </div>

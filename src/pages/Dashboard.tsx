@@ -18,7 +18,7 @@ export default function Dashboard() {
         </div>
 
         {/* Content of the active tab */}
-        <div className="px-4 pb-4 pt-4">
+        <div className="px-4 pb-4">
           <Outlet />
         </div>
       </div>
