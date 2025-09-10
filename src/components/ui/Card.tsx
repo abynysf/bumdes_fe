@@ -5,12 +5,7 @@ function CardRoot({
   className,
   ...rest
 }: PropsWithChildren<HTMLAttributes<HTMLDivElement>>) {
-  return (
-    <div
-      className={clsx("rounded-lg border bg-white shadow-sm", className)}
-      {...rest}
-    />
-  );
+  return <div className={clsx(" bg-white shadow-sm", className)} {...rest} />;
 }
 
 function Header({

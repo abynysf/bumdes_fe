@@ -1,6 +1,6 @@
 import { useState } from "react";
-import Input from "../../components/ui/Input";
-import Select from "../../components/ui/Select";
+import TextInput from "../../components/ui/TextInput";
+import Dropdown from "../../components/ui/Dropdown";
 import Textarea from "../../components/ui/Textarea";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
@@ -70,82 +70,68 @@ export default function ProfileTab() {
   }
 
   return (
-    <div className="grid grid-cols-12 gap-6">
+    <div className="grid grid-cols-12 gap-6 p-6 p">
       {/* Left column — main form */}
-      <Card className="col-span-12 lg:col-span-8 rounded-xl border bg-white shadow-sm">
-        <Card.Body className="space-y-4">
-          {/* Nama Lengkap */}
-          <div>
-            <div className="mb-1 flex items-center gap-1 text-sm font-medium text-neutral-700">
-              <span>Nama Lengkap BUM Desa</span>
-              <span className="text-red-600">*</span>
-            </div>
-            <Input
-              placeholder="Placeholder"
-              value={form.namaLengkap}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                update("namaLengkap", e.target.value)
-              }
-              className="rounded-lg text-neutral-900"
-            />
-            <p className="mt-1 text-xs text-neutral-400">
-              Wajib diisi. Sesuai dengan yang terdaftar pada Administrasi Hukum
-              Umum (AHU)
-            </p>
-          </div>
+      <div className="col-span-full lg:col-span-7 space-y-4">
+        {/* Nama Lengkap */}
+        <div>
+          <TextInput
+            label="Nama Lengkap BUM Desa"
+            required
+            placeholder="Placeholder"
+          />
+          <p className="mt-1 text-xs text-neutral-400">
+            Wajib diisi. Sesuai dengan yang terdaftar pada Administrasi Hukum
+            Umum (AHU)
+          </p>
+        </div>
 
-          {/* Status Badan Hukum */}
-          <div>
-            <div className="mb-1 flex items-center gap-1 text-sm font-medium text-neutral-700">
-              <span>Status Badan Hukum</span>
-              <span className="text-red-600">*</span>
-            </div>
-            <Select
-              value={form.statusBadanHukum}
-              onChange={(e) => update("statusBadanHukum", e.target.value)}
-              options={[
-                { label: "Placeholder", value: "" },
-                { label: "Sudah Terdaftar", value: "terdaftar" },
-                { label: "Belum Terdaftar", value: "belum" },
-              ]}
-              className="rounded-lg text-neutral-900"
-            />
-          </div>
+        {/* Status Badan Hukum */}
+        <Dropdown
+          label="Status Badan Hukum"
+          required
+          placeholder="Pilih status badan hukum"
+          options={[
+            { label: "Sudah Terbit", value: "terbit" },
+            { label: "Dalam Proses", value: "proses" },
+          ]}
+          value={form.statusBadanHukum}
+          onChange={(value) => update("statusBadanHukum", value)}
+        />
 
-          {/* Tahun Pendirian */}
-          <div>
-            <label className="mb-1 block text-sm font-medium text-neutral-700">
-              Tahun Pendirian BUM Desa
-            </label>
-            <Input
-              type="number"
-              placeholder="YYYY"
-              value={form.tahunPendirian ?? ""}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                update(
-                  "tahunPendirian",
-                  e.target.value === "" ? "" : Number(e.target.value)
-                )
-              }
-              className="rounded-lg text-neutral-900"
-            />
-          </div>
+        {/* Tahun Pendirian */}
+        <div>
+          <label className="mb-1 block text-sm font-medium text-neutral-700">
+            Tahun Pendirian BUM Desa
+          </label>
+          <TextInput
+            type="number"
+            placeholder="YYYY"
+            value={form.tahunPendirian ?? ""}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              update(
+                "tahunPendirian",
+                e.target.value === "" ? "" : Number(e.target.value)
+              )
+            }
+            className="rounded-lg text-neutral-900"
+          />
+        </div>
 
-          {/* Alamat */}
-          <div>
-            <div className="mb-1 flex items-center gap-1 text-sm font-medium text-neutral-700">
-              <span>Alamat Kantor</span>
-            </div>
-            <Textarea
-              placeholder="Write a message"
-              value={form.alamatKantor}
-              onChange={(e) => update("alamatKantor", e.target.value)}
-              rows={3}
-              className="rounded-lg text-neutral-900"
-            />
+        {/* Alamat */}
+        <div>
+          <div className="mb-1 flex items-center gap-1 text-sm font-medium text-neutral-700">
+            <span>Alamat Kantor</span>
           </div>
-        </Card.Body>
-      </Card>
+          <Textarea
+            placeholder="Write a message"
+            value={form.alamatKantor}
+            onChange={(e) => update("alamatKantor", e.target.value)}
+            rows={3}
+            className="rounded-lg text-neutral-900"
+          />
+        </div>
+      </div>
 
       {/* Right column — counts + rekening */}
       <div className="col-span-12 space-y-6 lg:col-span-4">
@@ -153,7 +139,7 @@ export default function ProfileTab() {
         <Card className="rounded-xl border bg-white shadow-sm">
           <Card.Body className="space-y-3 text-neutral-700">
             <span>Jumlah Pengurus BUM Desa</span>
-            <Input
+            <TextInput
               placeholder="Total"
               type="number"
               value={form.jumlahPengurus ?? ""}
@@ -171,7 +157,7 @@ export default function ProfileTab() {
                 <label className="mb-1 block text-xs text-neutral-700">
                   Jumlah Pengurus Laki-laki
                 </label>
-                <Input
+                <TextInput
                   type="number"
                   placeholder="Laki-laki"
                   value={form.tahunPendirian ?? ""}
@@ -188,7 +174,7 @@ export default function ProfileTab() {
                 <label className="mb-1 block text-xs text-neutral-700">
                   Jumlah Pengurus Perempuan
                 </label>
-                <Input
+                <TextInput
                   placeholder="Perempuan"
                   type="number"
                   value={form.pengurusP ?? ""}
