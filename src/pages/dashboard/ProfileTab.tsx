@@ -1,6 +1,7 @@
 import { useState } from "react";
 import TextInput from "../../components/ui/TextInput";
 import Dropdown from "../../components/ui/Dropdown";
+import YearPicker from "../../components/ui/YearPicker";
 import Textarea from "../../components/ui/Textarea";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
@@ -72,7 +73,7 @@ export default function ProfileTab() {
   return (
     <div className="grid grid-cols-12 gap-6 p-6 p">
       {/* Left column — main form */}
-      <div className="col-span-full lg:col-span-7 space-y-4">
+      <div className="col-span-full lg:col-span-7 space-y-4 ">
         {/* Nama Lengkap */}
         <div>
           <TextInput
@@ -100,37 +101,18 @@ export default function ProfileTab() {
         />
 
         {/* Tahun Pendirian */}
-        <div>
-          <label className="mb-1 block text-sm font-medium text-neutral-700">
-            Tahun Pendirian BUM Desa
-          </label>
-          <TextInput
-            type="number"
-            placeholder="YYYY"
-            value={form.tahunPendirian ?? ""}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              update(
-                "tahunPendirian",
-                e.target.value === "" ? "" : Number(e.target.value)
-              )
-            }
-            className="rounded-lg text-neutral-900"
-          />
-        </div>
+        <YearPicker
+          label="Tahun Pendirian BUM Desa"
+          required
+          placeholder="Pilih tahun"
+        />
 
         {/* Alamat */}
-        <div>
-          <div className="mb-1 flex items-center gap-1 text-sm font-medium text-neutral-700">
-            <span>Alamat Kantor</span>
-          </div>
-          <Textarea
-            placeholder="Write a message"
-            value={form.alamatKantor}
-            onChange={(e) => update("alamatKantor", e.target.value)}
-            rows={3}
-            className="rounded-lg text-neutral-900"
-          />
-        </div>
+        <Textarea
+          label="Keterangan Tambahan"
+          rows={6}
+          placeholder="Opsional..."
+        />
       </div>
 
       {/* Right column — counts + rekening */}
