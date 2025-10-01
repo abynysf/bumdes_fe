@@ -9,10 +9,10 @@ type Props = {
   autoCloseMs?: number;
 };
 
-export default function SaveResultModal({
+export default function WarningModal({
   open,
   onClose,
-  title = "Data tersimpan",
+  title = "Peringatan",
   autoCloseMs,
 }: Props) {
   useEffect(() => {

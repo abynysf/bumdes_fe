@@ -23,6 +23,7 @@ type BaseProfile = {
   jumlahPengurus: number | "";
   pengurusL: number | "";
   pengurusP: number | "";
+  skBadanHukumFile: string | null;
 };
 
 type DokumenPerdes = {
@@ -43,7 +44,6 @@ type ProfileState = {
   form: BaseProfile;
   dokumen: DokumenPerdes[];
   rekening: RekeningBUM[];
-  skBadanHukumFile: string | null;
 };
 
 /* ===========================
@@ -59,10 +59,10 @@ const INITIAL: ProfileState = {
     jumlahPengurus: "",
     pengurusL: "",
     pengurusP: "",
+    skBadanHukumFile: null,
   },
   dokumen: [],
   rekening: [],
-  skBadanHukumFile: null,
 };
 
 /* ===========================
@@ -116,7 +116,10 @@ function dataReducer(state: ProfileState, action: Action): ProfileState {
         dokumen: state.dokumen.filter((_, i) => i !== action.index),
       };
     case "sk/set":
-      return { ...state, skBadanHukumFile: action.payload };
+      return {
+        ...state,
+        form: { ...state.form, skBadanHukumFile: action.payload },
+      };
     case "reset":
       return INITIAL;
     default:
@@ -223,8 +226,8 @@ export default function ProfileTab() {
             </label>
 
             <p className="text-xs text-neutral-400">
-              {state.skBadanHukumFile
-                ? `Terpilih: ${state.skBadanHukumFile}`
+              {state.form.skBadanHukumFile
+                ? `Terpilih: ${state.form.skBadanHukumFile}`
                 : "Belum ada data terunggah"}
             </p>
 
