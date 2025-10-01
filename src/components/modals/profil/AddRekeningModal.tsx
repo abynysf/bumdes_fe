@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Modal from "../ui/Modal";
-import TextInput from "../ui/TextInput";
-import Dropdown from "../ui/Dropdown";
-import Button from "../ui/Button";
+import Modal from "../../ui/Modal";
+import TextInput from "../../ui/TextInput";
+import Dropdown from "../../ui/Dropdown";
+import Button from "../../ui/Button";
 
 type Rekening = {
   bank: string;
@@ -45,7 +45,7 @@ export default function AddRekeningModal({ open, onClose, onSave }: Props) {
         <Dropdown
           label="Nama Bank"
           required
-          placeholder="Placeholder"
+          placeholder="Masukkan nama bank"
           options={BANK_OPTIONS}
           value={bank}
           onChange={(val) => setBank(val)}
@@ -55,7 +55,7 @@ export default function AddRekeningModal({ open, onClose, onSave }: Props) {
         <TextInput
           label="Nama Pemilik Rekening"
           required
-          placeholder="Placeholder"
+          placeholder="Masukkan nama pemilik rekening"
           value={nama}
           onChange={(e: any) => setNama(e?.target?.value ?? e)}
         />
@@ -64,7 +64,7 @@ export default function AddRekeningModal({ open, onClose, onSave }: Props) {
         <TextInput
           label="Nomor Rekening BUM Desa"
           required
-          placeholder="Placeholder"
+          placeholder="Masukkan nomor rekening"
           value={nomor}
           onChange={(e: any) => setNomor(e?.target?.value ?? e)}
         />

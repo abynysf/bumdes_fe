@@ -1,9 +1,9 @@
 import { useState } from "react";
-import Modal from "../ui/Modal";
-import TextInput from "../ui/TextInput";
-import Button from "../ui/Button";
-import YearPicker from "../ui/YearPicker";
-import UploadDokumenModal from "./UploadDokumenModal";
+import Modal from "../../ui/Modal";
+import TextInput from "../../ui/TextInput";
+import Button from "../../ui/Button";
+import YearPicker from "../../ui/YearPicker";
+import UploadDokumenModal from "../UploadDokumenModal";
 
 type Props = {
   open: boolean;
@@ -58,7 +58,7 @@ export default function AddDokumenModal({ open, onClose, onSave }: Props) {
           <div>
             <TextInput
               label="Nama Perdes Pendirian BUM Desa"
-              placeholder="Placeholder"
+              placeholder="Masukkan nama dokumen"
               value={nama}
               onChange={(e: any) => setNama(e.target?.value ?? e)} // supports either event or value
               required
@@ -70,7 +70,7 @@ export default function AddDokumenModal({ open, onClose, onSave }: Props) {
           <div>
             <TextInput
               label="Nomor Perdes Pendirian BUM Desa"
-              placeholder="Placeholder"
+              placeholder="Masukkan nomor perdes"
               value={nomor}
               onChange={(e: any) => setNomor(e.target?.value ?? e)}
               required
