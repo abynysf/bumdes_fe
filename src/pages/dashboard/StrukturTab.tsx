@@ -725,17 +725,20 @@ export default function StrukturTab() {
         onClose={() => setOpenPengurus(false)}
         onSave={savePengurus}
         ShowJabatan
+        title="Data Pengurus BUM Desa"
       />
       <AddPengurusBUMModal
         open={openKepalaUnit}
         onClose={() => setOpenKepalaUnit(false)}
         onSave={saveKepalaUnit}
         ShowUnit
+        title="Data Kepala Unit BUM Desa"
       />
       <AddPengurusBUMModal
         open={openPengawas}
         onClose={() => setOpenPengawas(false)}
         onSave={savePengawas}
+        title="Data Pengawas BUM Desa"
       />
 
       <AddStrukturDokumenModal
