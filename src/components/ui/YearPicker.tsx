@@ -1,4 +1,5 @@
-import { useEffect, useId, useState, forwardRef } from "react";
+import { useEffect, useId, useMemo, useRef, useState, forwardRef } from "react";
+import { createPortal } from "react-dom";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import clsx from "clsx";
 
@@ -20,73 +21,142 @@ function startOfPage(year: number, pageSize = PAGE_SIZE) {
   return year - offset;
 }
 
-const YearPicker = forwardRef<HTMLButtonElement, Props>(function YearPicker(
-  { placeholder = "Pilih tahun", label, required, className, value, onChange },
-  ref
-) {
-  const id = useId();
-  const [open, setOpen] = useState(false);
+export const YearPicker = forwardRef<HTMLButtonElement, Props>(
+  function YearPicker(
+    {
+      placeholder = "Pilih tahun",
+      label,
+      required,
+      className,
+      value,
+      onChange,
+    },
+    ref
+  ) {
+    const id = useId();
+    const [open, setOpen] = useState(false);
 
-  const currentYear = new Date().getFullYear();
-  const safeCurrent = Math.min(Math.max(currentYear, MIN_YEAR), MAX_YEAR);
+    // anchor (trigger) DOM node to compute viewport position
+    const anchorRef = useRef<HTMLButtonElement | null>(null);
 
-  // Compute initial page based on selected value or current year
-  const initialStart = startOfPage(value ?? safeCurrent);
-  const [pageStart, setPageStart] = useState(initialStart);
+    // current year & initial page
+    const currentYear = new Date().getFullYear();
+    const safeCurrent = Math.min(Math.max(currentYear, MIN_YEAR), MAX_YEAR);
+    const initialStart = startOfPage(value ?? safeCurrent);
+    const [pageStart, setPageStart] = useState(initialStart);
 
-  // If the selected year changes (via parent), keep the pager aligned
-  useEffect(() => {
-    if (typeof value === "number") {
-      setPageStart(startOfPage(value));
-    }
-  }, [value]);
+    // keep pager aligned with external value
+    useEffect(() => {
+      if (typeof value === "number") {
+        setPageStart(startOfPage(value));
+      }
+    }, [value]);
 
-  // Close popup on scroll / resize / Esc to prevent “floating”
-  useEffect(() => {
-    if (!open) return;
+    // lock body scroll while open
+    useEffect(() => {
+      if (!open) return;
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }, [open]);
 
-    const close = () => setOpen(false);
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
+    // close on Esc / resize / scroll
+    useEffect(() => {
+      if (!open) return;
 
-    // capture = true so inner scroll containers also trigger it
-    window.addEventListener("scroll", close, true);
-    window.addEventListener("resize", close);
-    window.addEventListener("keydown", onKey);
+      const close = () => setOpen(false);
+      const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
 
-    return () => {
-      window.removeEventListener("scroll", close, true);
-      window.removeEventListener("resize", close);
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+      window.addEventListener("resize", close);
+      window.addEventListener("keydown", onKey);
+      // catch scrolls anywhere (capture helps for nested scrollers)
+      window.addEventListener("scroll", close, { capture: true });
+      document.addEventListener("scroll", close, { capture: true });
 
-  const years = Array.from(
-    { length: PAGE_SIZE },
-    (_, i) => pageStart + i
-  ).filter((y) => y >= MIN_YEAR && y <= MAX_YEAR);
+      return () => {
+        window.removeEventListener("resize", close);
+        window.removeEventListener("keydown", onKey);
+        window.removeEventListener(
+          "scroll",
+          close as any,
+          { capture: true } as any
+        );
+        document.removeEventListener(
+          "scroll",
+          close as any,
+          { capture: true } as any
+        );
+      };
+    }, [open]);
 
-  const labelText = typeof value === "number" ? String(value) : placeholder;
-  const isPlaceholder = typeof value !== "number";
+    const years = useMemo(
+      () =>
+        Array.from({ length: PAGE_SIZE }, (_, i) => pageStart + i).filter(
+          (y) => y >= MIN_YEAR && y <= MAX_YEAR
+        ),
+      [pageStart]
+    );
 
-  return (
-    <div className="w-full">
-      {label && (
-        <label
-          htmlFor={id}
-          className="mb-1 flex items-center gap-1 text-sm font-medium text-neutral-700"
-        >
-          {required && <span className="text-red-600">*</span>}
-          <span>{label}</span>
-        </label>
-      )}
+    const labelText = typeof value === "number" ? String(value) : placeholder;
+    const isPlaceholder = typeof value !== "number";
 
-      <div className="relative">
+    // ---- popup positioning (fixed, via portal) ----
+    const [popupStyle, setPopupStyle] = useState<React.CSSProperties>({});
+    useEffect(() => {
+      if (!open) return;
+      const el = anchorRef.current;
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const gap = 8; // space between trigger & popup
+      const popupWidth = 288; // ~w-72
+      const popupHeight = 280; // rough; adjusted after open if needed
+
+      // Try to place below; if not enough space, place above
+      const viewportH = window.innerHeight;
+      const belowTop = rect.bottom + gap;
+      const aboveTop = Math.max(8, rect.top - gap - popupHeight);
+
+      const placeBelow = belowTop + popupHeight <= viewportH;
+
+      // Clamp horizontally so it stays on-screen
+      const left = Math.min(
+        Math.max(8, rect.left),
+        Math.max(8, window.innerWidth - popupWidth - 8)
+      );
+
+      setPopupStyle({
+        position: "fixed",
+        top: placeBelow ? belowTop : aboveTop,
+        left,
+        width: popupWidth,
+        zIndex: 50,
+      });
+    }, [open]);
+
+    return (
+      <div className="w-full">
+        {label && (
+          <label
+            htmlFor={id}
+            className="mb-1 flex items-center gap-1 text-sm font-medium text-neutral-700"
+          >
+            {required && <span className="text-red-600">*</span>}
+            <span>{label}</span>
+          </label>
+        )}
+
         {/* Trigger */}
         <button
           id={id}
-          ref={ref}
+          ref={(node) => {
+            anchorRef.current = node;
+            if (typeof ref === "function") ref(node as HTMLButtonElement);
+            else if (ref && "current" in (ref as any))
+              (ref as any).current = node;
+          }}
           type="button"
           aria-haspopup="dialog"
           aria-expanded={open}
@@ -108,87 +178,92 @@ const YearPicker = forwardRef<HTMLButtonElement, Props>(function YearPicker(
           <CalendarDays className="h-4 w-4 text-neutral-600" />
         </button>
 
-        {/* Overlay */}
-        {open && (
-          <div
-            className="fixed inset-0 z-40 bg-black/20"
-            onClick={() => setOpen(false)}
-          />
-        )}
-
-        {/* Popup */}
-        {open && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="absolute left-0 top-full z-50 mt-2 w-72 rounded-lg bg-white shadow-lg ring-1 ring-neutral-200"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between px-3 py-2">
-              <button
-                type="button"
-                className="rounded p-1 hover:bg-neutral-100 disabled:opacity-40"
-                onClick={() =>
-                  setPageStart((s) => Math.max(s - PAGE_SIZE, MIN_YEAR))
-                }
-                disabled={pageStart <= MIN_YEAR}
+        {/* Overlay + Popup via portal */}
+        {open &&
+          createPortal(
+            <>
+              {/* Overlay */}
+              <div
+                className="fixed inset-0 z-40 bg-black/20"
+                onClick={() => setOpen(false)}
+                aria-hidden="true"
+              />
+              {/* Popup (fixed) */}
+              <div
+                role="dialog"
+                aria-modal="true"
+                className="rounded-lg bg-white shadow-lg ring-1 ring-neutral-200"
+                style={popupStyle}
               >
-                <ChevronLeft className="h-4 w-4 text-neutral-600" />
-              </button>
-
-              <div className="text-sm font-semibold text-neutral-800">
-                {Math.max(pageStart, MIN_YEAR)} –{" "}
-                {Math.min(pageStart + PAGE_SIZE - 1, MAX_YEAR)}
-              </div>
-
-              <button
-                type="button"
-                className="rounded p-1 hover:bg-neutral-100 disabled:opacity-40"
-                onClick={() =>
-                  setPageStart((s) =>
-                    Math.min(s + PAGE_SIZE, MAX_YEAR - PAGE_SIZE + 1)
-                  )
-                }
-                disabled={pageStart + PAGE_SIZE - 1 >= MAX_YEAR}
-              >
-                <ChevronRight className="h-4 w-4 text-neutral-600" />
-              </button>
-            </div>
-
-            {/* Year grid */}
-            <div className="grid grid-cols-4 gap-x-6 gap-y-3 px-4 pb-4 pt-1">
-              {years.map((y) => {
-                const isSelected = y === value;
-                const isCurrent = y === safeCurrent;
-                return (
+                {/* Header */}
+                <div className="flex items-center justify-between px-3 py-2">
                   <button
-                    key={y}
                     type="button"
-                    onClick={() => {
-                      onChange?.(y);
-                      setOpen(false);
-                    }}
-                    className={clsx(
-                      "relative rounded-md px-2 py-2 text-left text-sm transition",
-                      "hover:bg-neutral-100",
-                      isSelected &&
-                        "bg-neutral-50 font-semibold text-neutral-900",
-                      !isSelected && "text-neutral-800"
-                    )}
+                    className="rounded p-1 hover:bg-neutral-100 disabled:opacity-40"
+                    onClick={() =>
+                      setPageStart((s) => Math.max(s - PAGE_SIZE, MIN_YEAR))
+                    }
+                    disabled={pageStart <= MIN_YEAR}
                   >
-                    {y}
-                    {isCurrent && (
-                      <span className="pointer-events-none absolute inset-0 -z-10 rounded-md bg-emerald-500/15" />
-                    )}
+                    <ChevronLeft className="h-4 w-4 text-neutral-600" />
                   </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+
+                  <div className="text-sm font-semibold text-neutral-800">
+                    {Math.max(pageStart, MIN_YEAR)} –{" "}
+                    {Math.min(pageStart + PAGE_SIZE - 1, MAX_YEAR)}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="rounded p-1 hover:bg-neutral-100 disabled:opacity-40"
+                    onClick={() =>
+                      setPageStart((s) =>
+                        Math.min(s + PAGE_SIZE, MAX_YEAR - PAGE_SIZE + 1)
+                      )
+                    }
+                    disabled={pageStart + PAGE_SIZE - 1 >= MAX_YEAR}
+                  >
+                    <ChevronRight className="h-4 w-4 text-neutral-600" />
+                  </button>
+                </div>
+
+                {/* Year grid */}
+                <div className="grid grid-cols-4 gap-x-6 gap-y-3 px-4 pb-4 pt-1 w-72">
+                  {years.map((y) => {
+                    const isSelected = y === value;
+                    const isCurrent = y === safeCurrent;
+                    return (
+                      <button
+                        key={y}
+                        type="button"
+                        onClick={() => {
+                          onChange?.(y);
+                          setOpen(false);
+                        }}
+                        className={clsx(
+                          "relative rounded-md px-2 py-2 text-left text-sm transition",
+                          "hover:bg-neutral-100",
+                          isSelected
+                            ? "bg-neutral-50 font-semibold text-neutral-900"
+                            : "text-neutral-800"
+                        )}
+                      >
+                        {y}
+                        {isCurrent && (
+                          <span className="pointer-events-none absolute inset-0 -z-10 rounded-md bg-emerald-500/15" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </>,
+            // portal target
+            document.body
+          )}
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 export default YearPicker;

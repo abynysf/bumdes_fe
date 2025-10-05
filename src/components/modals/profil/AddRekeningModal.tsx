@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "../../ui/Modal";
 import TextInput from "../../ui/TextInput";
 import Dropdown from "../../ui/Dropdown";
@@ -31,11 +31,20 @@ export default function AddRekeningModal({ open, onClose, onSave }: Props) {
   const [nomor, setNomor] = useState("");
   const [ketahanan, setKetahanan] = useState(false);
 
+  useEffect(() => {
+    if (open) {
+      setBank("");
+      setNama("");
+      setNomor("");
+      setKetahanan(false);
+    }
+  }, [open]);
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!bank || !nama || !nomor) return;
     onSave({ bank, nama, nomor, ketahananPangan: ketahanan });
-    onClose();
+    onClose(); // will trigger the reset next time it opens
   }
 
   return (
