@@ -1,22 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "../../ui/Modal";
 import TextInput from "../../ui/TextInput";
 import Button from "../../ui/Button";
 import YearPicker from "../../ui/YearPicker";
 import UploadDokumenModal from "../UploadDokumenModal";
 
+type DokumenData = {
+  tahun: number;
+  nama: string;
+  nomor: string;
+  file?: string;
+};
+
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSave: (dokumen: {
-    tahun: number;
-    nama: string;
-    nomor: string;
-    file: string;
-  }) => void;
+  onSave: (dokumen: DokumenData) => void;
+  initialData?: DokumenData;
 };
 
-export default function AddDokumenModal({ open, onClose, onSave }: Props) {
+export default function AddDokumenModal({ open, onClose, onSave, initialData }: Props) {
   const [tahun, setTahun] = useState<number | "">("");
   const [nama, setNama] = useState("");
   const [nomor, setNomor] = useState("");
@@ -26,13 +29,37 @@ export default function AddDokumenModal({ open, onClose, onSave }: Props) {
   // upload modal visibility
   const [openUpload, setOpenUpload] = useState(false);
 
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        // Editing mode - populate with existing data
+        setTahun(initialData.tahun);
+        setNama(initialData.nama);
+        setNomor(initialData.nomor);
+        setFile(initialData.file ?? "");
+      } else {
+        // Add mode - reset all fields
+        setTahun("");
+        setNama("");
+        setNomor("");
+        setFile("");
+      }
+      setTouched(false);
+    }
+  }, [open, initialData]);
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouched(true); // Show validation errors
 
-    if (tahun === "" || !nama || !nomor || !file) return; // simple guard
+    if (tahun === "" || !nama || !nomor) return; // file is optional
 
-    onSave({ tahun: Number(tahun), nama, nomor, file });
+    onSave({
+      tahun: Number(tahun),
+      nama,
+      nomor,
+      file: file || undefined,
+    });
 
     // Reset form
     setTahun("");
@@ -48,7 +75,7 @@ export default function AddDokumenModal({ open, onClose, onSave }: Props) {
       <Modal
         open={open}
         onClose={onClose}
-        title="Unggah Perdes Pendirian BUM Desa"
+        title={initialData ? "Edit Perdes Pendirian BUM Desa" : "Unggah Perdes Pendirian BUM Desa"}
       >
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           {/* Tahun */}

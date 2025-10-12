@@ -21,7 +21,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
   const currentLabel = crumbs[location.pathname] ?? "";
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-white/95 backdrop-blur-sm px-4 py-4 sm:px-6 sm:py-6">
+    <header className="sticky top-0 z-30 border-b bg-white backdrop-blur-sm px-4 py-4 sm:px-6 sm:py-6">
       <div className="flex items-center gap-3 sm:gap-4">
         {/* Hamburger menu button (mobile only) */}
         <button

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "../../ui/Modal";
 import TextInput from "../../ui/TextInput";
 import Button from "../../ui/Button";
@@ -27,6 +27,9 @@ type Props = {
   namaLabel?: string;
   nomorLabel?: string;
   nominalLabel?: string;
+
+  /** Initial data for editing */
+  initialData?: Partial<LegalDokumenPayload>;
 };
 
 export default function AddLegalDokumenModal({
@@ -39,6 +42,7 @@ export default function AddLegalDokumenModal({
   namaLabel = "Nama Dokumen",
   nomorLabel = "Nomor Dokumen",
   nominalLabel = "Nominal",
+  initialData,
 }: Props) {
   const [tahun, setTahun] = useState<number | "">("");
   const [nama, setNama] = useState("");
@@ -48,6 +52,29 @@ export default function AddLegalDokumenModal({
   const [touched, setTouched] = useState(false);
 
   const [openUpload, setOpenUpload] = useState(false);
+
+  // Populate fields when editing
+  useEffect(() => {
+    if (initialData) {
+      setTahun(initialData.tahun ?? "");
+      setNama(initialData.nama ?? "");
+      setNomor(initialData.nomor ?? "");
+      setNominal(initialData.nominal ?? "");
+      setFile(initialData.file ?? "");
+    }
+  }, [initialData]);
+
+  // Reset fields when adding new
+  useEffect(() => {
+    if (!initialData && open) {
+      setTahun("");
+      setNama("");
+      setNomor("");
+      setNominal("");
+      setFile("");
+      setTouched(false);
+    }
+  }, [initialData, open]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

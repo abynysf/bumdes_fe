@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "../../ui/Modal";
 import TextInput from "../../ui/TextInput";
 import Button from "../../ui/Button";
@@ -17,6 +17,7 @@ type Props = {
   onSave: (dokumen: DocumentData) => void;
   title?: string;
   keterangan?: string;
+  initialData?: DocumentData;
 };
 
 export default function AddStrukturDokumenModal({
@@ -25,6 +26,7 @@ export default function AddStrukturDokumenModal({
   onSave,
   title,
   keterangan,
+  initialData,
 }: Props) {
   const [awal, setAwal] = useState<number | "">("");
   const [akhir, setAkhir] = useState<number | "">("");
@@ -34,6 +36,26 @@ export default function AddStrukturDokumenModal({
 
   // upload modal visibility
   const [openUpload, setOpenUpload] = useState(false);
+
+  // Populate fields when editing
+  useEffect(() => {
+    if (open && initialData) {
+      // Parse periode string "2020–2025" back to numbers
+      const [awalStr, akhirStr] = initialData.periode.split("–");
+      setAwal(awalStr ? parseInt(awalStr, 10) : "");
+      setAkhir(akhirStr ? parseInt(akhirStr, 10) : "");
+      setNomor(initialData.nomor === "-" ? "" : initialData.nomor);
+      setFile(initialData.file === "-" ? "" : initialData.file);
+      setTouched(false);
+    } else if (open && !initialData) {
+      // Reset form when opening for new entry
+      setAwal("");
+      setAkhir("");
+      setNomor("");
+      setFile("");
+      setTouched(false);
+    }
+  }, [open, initialData]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -56,14 +78,6 @@ export default function AddStrukturDokumenModal({
       nomor: nomor.trim() || "-",
       file: file || "-"
     });
-
-    // Reset form
-    setAwal("");
-    setAkhir("");
-    setNomor("");
-    setFile("");
-    setTouched(false);
-    onClose();
   }
 
   return (

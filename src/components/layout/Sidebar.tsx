@@ -1,10 +1,10 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Search,
-  LayoutGrid,
-  ListChecks,
-  FileStack,
   IdCard,
+  Building2,
+  Briefcase,
+  FileText,
   Settings,
   LogOut,
   X,
@@ -19,14 +19,11 @@ type Item = {
   icon: React.ComponentType<{ className?: string }>;
 };
 
-const primary: Item[] = [
-  { label: "Beranda", to: "/home", icon: LayoutGrid },
-  { label: "Kegiatan", to: "/activities", icon: ListChecks },
-  { label: "Laporan dan Dokumentasi", to: "/reports", icon: FileStack },
-];
-
-const manage: Item[] = [
+const menuItems: Item[] = [
   { label: "Profil BUM Desa", to: "/dashboard/", icon: IdCard },
+  { label: "Aset BUM Desa", to: "/assets", icon: Building2 },
+  { label: "Unit Usaha BUM Desa", to: "/business-units", icon: Briefcase },
+  { label: "Laporan BUM Desa", to: "/financial-reports", icon: FileText },
   { label: "Pengaturan", to: "/settings", icon: Settings },
 ];
 
@@ -54,10 +51,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   // Filter items based on search
-  const filteredPrimary = primary.filter((item) =>
-    item.label.toLowerCase().includes(debouncedSearch.toLowerCase())
-  );
-  const filteredManage = manage.filter((item) =>
+  const filteredItems = menuItems.filter((item) =>
     item.label.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
 
@@ -105,46 +99,31 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 flex flex-col justify-between overflow-y-auto">
+      <nav className="flex-1 px-4 pb-4 overflow-y-auto">
         <div className="space-y-1">
-          {filteredPrimary.length > 0 ? (
-            filteredPrimary.map(({ label, to, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={onClose}
-                className={({ isActive }) => itemClass(isActive)}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0 text-neutral-500" />
-                <span className="truncate">{label}</span>
-              </NavLink>
-            ))
+          {filteredItems.length > 0 ? (
+            filteredItems.map(({ label, to, icon: Icon }) => {
+              const isActive = location.pathname.startsWith(to);
+              return (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={onClose}
+                  className={() => itemClass(isActive)}
+                >
+                  <Icon
+                    className={clsx(
+                      "h-5 w-5 flex-shrink-0",
+                      isActive ? "text-emerald-700" : "text-neutral-500"
+                    )}
+                  />
+                  <span className="truncate">{label}</span>
+                </NavLink>
+              );
+            })
           ) : (
             <p className="px-3 py-2 text-sm text-neutral-400">Tidak ada hasil</p>
           )}
-        </div>
-
-        {/* Manage section */}
-        <div className="space-y-1 pb-4">
-          {filteredManage.map(({ label, to, icon: Icon }) => {
-            const isActive = location.pathname.startsWith(to);
-            return (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={onClose}
-                className={() => itemClass(isActive)}
-              >
-                <Icon
-                  className={clsx(
-                    "h-5 w-5 flex-shrink-0",
-                    isActive ? "text-emerald-700" : "text-neutral-500"
-                  )}
-                />
-                <span className="truncate">{label}</span>
-              </NavLink>
-            );
-          })}
         </div>
       </nav>
 

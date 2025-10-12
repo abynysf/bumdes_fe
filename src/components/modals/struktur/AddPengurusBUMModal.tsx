@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "../../ui/Modal";
 import TextInput from "../../ui/TextInput";
 import Button from "../../ui/Button";
@@ -16,6 +16,7 @@ type Props = {
   onClose: () => void;
   onSave: (person: PersonData) => void;
   title?: string;
+  initialData?: PersonData;
 
   /** Toggle field visibility per use-case */
   ShowJabatan?: boolean;
@@ -27,6 +28,7 @@ export default function AddPengurusBUMModal({
   onClose,
   onSave,
   title,
+  initialData,
   ShowJabatan = false,
   ShowUnit = false,
 }: Props) {
@@ -36,6 +38,26 @@ export default function AddPengurusBUMModal({
   const [pekerjaan, setPekerjaan] = useState("");
   const [nomorTelepon, setNomorTelepon] = useState("");
   const [touched, setTouched] = useState(false);
+
+  // Populate fields when editing
+  useEffect(() => {
+    if (open && initialData) {
+      setJabatan(initialData.jabatan ?? "");
+      setNama(initialData.nama);
+      setUnit(initialData.unit ?? "");
+      setPekerjaan(initialData.pekerjaan);
+      setNomorTelepon(initialData.nomorTelepon);
+      setTouched(false);
+    } else if (open && !initialData) {
+      // Reset form when opening for new entry
+      setJabatan("");
+      setNama("");
+      setUnit("");
+      setPekerjaan("");
+      setNomorTelepon("");
+      setTouched(false);
+    }
+  }, [open, initialData]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,15 +81,6 @@ export default function AddPengurusBUMModal({
       ...(ShowUnit ? { unit } : {}),
     };
     onSave(payload);
-
-    // Reset form
-    setJabatan("");
-    setNama("");
-    setUnit("");
-    setPekerjaan("");
-    setNomorTelepon("");
-    setTouched(false);
-    onClose();
   }
 
   return (

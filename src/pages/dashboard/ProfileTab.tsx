@@ -10,7 +10,7 @@ import AddRekeningModal from "../../components/modals/profil/AddRekeningModal";
 import UploadDokumenModal from "../../components/modals/UploadDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
 import WarningModal from "../../components/modals/WarningModal";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Eye, Pencil, Trash2 } from "lucide-react";
 
 /* ===========================
  * Types
@@ -31,7 +31,7 @@ type DokumenPerdes = {
   tahun: number;
   nama: string;
   nomor: string;
-  file: string;
+  file?: string;
 };
 
 type RekeningBUM = {
@@ -39,6 +39,8 @@ type RekeningBUM = {
   nama: string;
   nomor: string;
   ketahananPangan?: boolean;
+  keterangan?: string;
+  file?: string;
 };
 
 type ProfileState = {
@@ -91,8 +93,10 @@ type Action =
       value: BaseProfile[keyof BaseProfile];
     }
   | { type: "rekening/add"; payload: RekeningBUM }
+  | { type: "rekening/update"; index: number; payload: RekeningBUM }
   | { type: "rekening/remove"; index: number }
   | { type: "dokumen/add"; payload: DokumenPerdes }
+  | { type: "dokumen/update"; index: number; payload: DokumenPerdes }
   | { type: "dokumen/remove"; index: number }
   | { type: "sk/set"; payload: string | null }
   | { type: "reset" };
@@ -104,6 +108,13 @@ function dataReducer(state: ProfileState, action: Action): ProfileState {
 
     case "rekening/add":
       return { ...state, rekening: [...state.rekening, action.payload] };
+    case "rekening/update":
+      return {
+        ...state,
+        rekening: state.rekening.map((r, i) =>
+          i === action.index ? action.payload : r
+        ),
+      };
     case "rekening/remove":
       return {
         ...state,
@@ -111,6 +122,13 @@ function dataReducer(state: ProfileState, action: Action): ProfileState {
       };
     case "dokumen/add":
       return { ...state, dokumen: [...state.dokumen, action.payload] };
+    case "dokumen/update":
+      return {
+        ...state,
+        dokumen: state.dokumen.map((d, i) =>
+          i === action.index ? action.payload : d
+        ),
+      };
     case "dokumen/remove":
       return {
         ...state,
@@ -145,6 +163,20 @@ export default function ProfileTab() {
   // Track if user attempted to submit (for showing validation errors)
   const [touched, setTouched] = useState(false);
 
+  // Edit rekening state
+  const [editingRekeningIndex, setEditingRekeningIndex] = useState<number | null>(null);
+
+  // Edit dokumen state
+  const [editingDokumenIndex, setEditingDokumenIndex] = useState<number | null>(null);
+
+  // Download confirmation modal state
+  const [downloadConfirmOpen, setDownloadConfirmOpen] = useState(false);
+  const [fileToDownload, setFileToDownload] = useState<string>("");
+
+  // Preview modal state
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [fileToPreview, setFileToPreview] = useState<string>("");
+
   // Handlers
   const updateForm = useCallback(
     (key: keyof BaseProfile, value: BaseProfile[keyof BaseProfile]) =>
@@ -174,6 +206,24 @@ export default function ProfileTab() {
     } else {
       alert("Tidak ada URL. Nama file tersimpan: " + file);
     }
+  }, []);
+
+  const handleDownloadFile = useCallback((file: string) => {
+    setFileToDownload(file);
+    setDownloadConfirmOpen(true);
+  }, []);
+
+  const confirmDownload = useCallback(() => {
+    if (fileToDownload) {
+      downloadFile(fileToDownload);
+    }
+    setDownloadConfirmOpen(false);
+    setFileToDownload("");
+  }, [fileToDownload, downloadFile]);
+
+  const handlePreviewFile = useCallback((file: string) => {
+    setFileToPreview(file);
+    setPreviewOpen(true);
   }, []);
 
   const onSave = useCallback(() => {
@@ -206,14 +256,24 @@ export default function ProfileTab() {
 
   // modal save helpers
   const saveRekening = useCallback((rek: RekeningBUM) => {
-    dispatch({ type: "rekening/add", payload: rek });
+    if (editingRekeningIndex !== null) {
+      dispatch({ type: "rekening/update", index: editingRekeningIndex, payload: rek });
+      setEditingRekeningIndex(null);
+    } else {
+      dispatch({ type: "rekening/add", payload: rek });
+    }
     setOpenRekening(false);
-  }, []);
+  }, [editingRekeningIndex]);
 
   const saveDokumen = useCallback((doc: DokumenPerdes) => {
-    dispatch({ type: "dokumen/add", payload: doc });
+    if (editingDokumenIndex !== null) {
+      dispatch({ type: "dokumen/update", index: editingDokumenIndex, payload: doc });
+      setEditingDokumenIndex(null);
+    } else {
+      dispatch({ type: "dokumen/add", payload: doc });
+    }
     setOpenDokumen(false);
-  }, []);
+  }, [editingDokumenIndex]);
 
   return (
     <div className="grid grid-cols-12 gap-6 p-6">
@@ -311,7 +371,10 @@ export default function ProfileTab() {
         <DataCard
           label="Peraturan Desa Pendirian BUM Desa"
           buttonLabel="Tambah Dokumen"
-          onButtonClick={() => setOpenDokumen(true)}
+          onButtonClick={() => {
+            setEditingDokumenIndex(null);
+            setOpenDokumen(true);
+          }}
         >
           <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
             <table className="min-w-full w-full border-separate border-spacing-0">
@@ -357,29 +420,45 @@ export default function ProfileTab() {
                         {d.nomor}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2 text-neutral-800">
-                        {isUrl(d.file) ? (
-                          <a
-                            href={d.file}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:underline"
-                          >
-                            {d.file}
-                          </a>
-                        ) : (
-                          d.file
-                        )}
+                        {d.file || "-"}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         <div className="flex justify-end gap-2">
+                          {d.file && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => handlePreviewFile(d.file!)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                title="Preview"
+                                aria-label="Preview dokumen"
+                              >
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadFile(d.file!)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                title="Unduh"
+                                aria-label="Unduh dokumen"
+                              >
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
+                          )}
+
                           <button
                             type="button"
-                            onClick={() => downloadFile(d.file)}
-                            className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
-                            title="Unduh"
-                            aria-label="Unduh dokumen"
+                            onClick={() => {
+                              setEditingDokumenIndex(i);
+                              setOpenDokumen(true);
+                            }}
+                            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                            title="Edit"
+                            aria-label="Edit dokumen"
                           >
-                            <Download className="h-4 w-4 text-emerald-600" />
+                            <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
 
                           <button
@@ -412,6 +491,16 @@ export default function ProfileTab() {
             placeholder="Masukkan jumlah pengurus BUM Desa"
             value={String(state.form.jumlahPengurus ?? "")}
             onChange={handleNumber("jumlahPengurus")}
+            error={
+              touched &&
+              state.form.jumlahPengurus !== "" &&
+              state.form.pengurusL !== "" &&
+              state.form.pengurusP !== "" &&
+              Number(state.form.jumlahPengurus) !== Number(state.form.pengurusL) + Number(state.form.pengurusP)
+                ? `Harus sama dengan total L + P (${Number(state.form.pengurusL) + Number(state.form.pengurusP)})`
+                : undefined
+            }
+            touched={touched}
           />
 
           <div className="mt-4 flex gap-3">
@@ -435,7 +524,10 @@ export default function ProfileTab() {
         <DataCard
           label="Rekening BUM Desa"
           buttonLabel="Tambah Rekening"
-          onButtonClick={() => setOpenRekening(true)}
+          onButtonClick={() => {
+            setEditingRekeningIndex(null);
+            setOpenRekening(true);
+          }}
         >
           <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
             <table className="min-w-full w-full border-separate border-spacing-0">
@@ -450,6 +542,12 @@ export default function ProfileTab() {
                   <th className="border-b border-neutral-200 px-3 py-3">
                     Nomor Rekening
                   </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Keterangan
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    File
+                  </th>
                   <th className="border-b border-neutral-200 px-3 py-3 text-right">
                     Aksi
                   </th>
@@ -459,7 +557,7 @@ export default function ProfileTab() {
                 {state.rekening.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={6}
                       className="px-3 py-4 text-center text-sm text-neutral-400"
                     >
                       Tidak ada data yang ditambahkan
@@ -482,18 +580,60 @@ export default function ProfileTab() {
                       <td className="border-b border-neutral-200 px-3 py-2">
                         {r.nomor}
                       </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {r.keterangan || "-"}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {r.file || "-"}
+                      </td>
                       <td className="border-b border-neutral-200 px-3 py-2 text-right">
-                        <button
-                          type="button"
-                          className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                          onClick={() =>
-                            dispatch({ type: "rekening/remove", index: i })
-                          }
-                          title="Hapus"
-                          aria-label="Hapus rekening"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          {r.file && (
+                            <>
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                onClick={() => handlePreviewFile(r.file!)}
+                                title="Preview"
+                                aria-label="Preview file"
+                              >
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                onClick={() => handleDownloadFile(r.file!)}
+                                title="Unduh"
+                                aria-label="Unduh file"
+                              >
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
+                          )}
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                            onClick={() => {
+                              setEditingRekeningIndex(i);
+                              setOpenRekening(true);
+                            }}
+                            title="Edit"
+                            aria-label="Edit rekening"
+                          >
+                            <Pencil className="h-4 w-4 text-blue-600" />
+                          </button>
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
+                            onClick={() =>
+                              dispatch({ type: "rekening/remove", index: i })
+                            }
+                            title="Hapus"
+                            aria-label="Hapus rekening"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -512,14 +652,30 @@ export default function ProfileTab() {
       {/* Modals */}
       <AddRekeningModal
         open={openRekening}
-        onClose={() => setOpenRekening(false)}
+        onClose={() => {
+          setOpenRekening(false);
+          setEditingRekeningIndex(null);
+        }}
         onSave={saveRekening}
+        initialData={
+          editingRekeningIndex !== null
+            ? state.rekening[editingRekeningIndex]
+            : undefined
+        }
       />
 
       <AddDokumenModal
         open={openDokumen}
-        onClose={() => setOpenDokumen(false)}
+        onClose={() => {
+          setOpenDokumen(false);
+          setEditingDokumenIndex(null);
+        }}
         onSave={saveDokumen}
+        initialData={
+          editingDokumenIndex !== null
+            ? state.dokumen[editingDokumenIndex]
+            : undefined
+        }
       />
 
       <UploadDokumenModal
@@ -545,6 +701,83 @@ export default function ProfileTab() {
         title="Data Belum Lengkap"
         message="Mohon lengkapi data wajib sebelum menyimpan."
       />
+
+      {/* Download Confirmation Modal */}
+      {downloadConfirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => {
+            setDownloadConfirmOpen(false);
+            setFileToDownload("");
+          }}
+        >
+          <div
+            className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="mb-4 text-lg font-semibold text-neutral-800">
+              Unduh Dokumen
+            </h3>
+            <p className="mb-6 text-sm text-neutral-600">
+              Apakah Anda yakin ingin mengunduh file: <strong>{fileToDownload}</strong>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setDownloadConfirmOpen(false);
+                  setFileToDownload("");
+                }}
+                className="rounded-md bg-neutral-200 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-300"
+              >
+                Batal
+              </button>
+              <button
+                onClick={confirmDownload}
+                className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+              >
+                Unduh
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {previewOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setPreviewOpen(false)}
+        >
+          <div
+            className="relative max-h-[90vh] max-w-[90vw] overflow-auto rounded-lg bg-white p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Preview Dokumen</h3>
+              <button
+                onClick={() => setPreviewOpen(false)}
+                className="text-neutral-500 hover:text-neutral-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="text-sm text-neutral-600">
+              <p className="mb-2">File: {fileToPreview}</p>
+              {isUrl(fileToPreview) ? (
+                <iframe
+                  src={fileToPreview}
+                  className="h-[70vh] w-full border"
+                  title="Preview dokumen"
+                />
+              ) : (
+                <p className="text-neutral-500">
+                  Pratinjau tidak tersedia. File: {fileToPreview}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
