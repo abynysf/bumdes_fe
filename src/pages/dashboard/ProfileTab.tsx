@@ -191,6 +191,12 @@ export default function ProfileTab() {
       return;
     }
 
+    // Validate SK file if status is "terbit"
+    if (state.form.statusBadanHukum === "terbit" && !state.form.skBadanHukumFile) {
+      setShowWarning(true);
+      return;
+    }
+
     // TODO: ganti dengan API call
     console.log("[SAVE] profil payload:", state);
     setSavedOpen(true);
@@ -248,7 +254,11 @@ export default function ProfileTab() {
               <span>Surat Keterangan Badan Hukum</span>
             </label>
 
-            <p className="text-xs text-neutral-400">
+            <p className={`text-xs ${
+              touched && !state.form.skBadanHukumFile
+                ? "text-red-600"
+                : "text-neutral-400"
+            }`}>
               {state.form.skBadanHukumFile
                 ? `Terpilih: ${state.form.skBadanHukumFile}`
                 : "Belum ada data terunggah"}
@@ -257,10 +267,20 @@ export default function ProfileTab() {
             <button
               type="button"
               onClick={() => setOpenUploadSK(true)}
-              className="mt-2 rounded-md bg-neutral-500 px-4 py-2 text-xs text-white hover:bg-neutral-600 font-semibold"
+              className={`mt-2 rounded-md px-4 py-2 text-xs text-white font-semibold ${
+                touched && !state.form.skBadanHukumFile
+                  ? "bg-red-500 hover:bg-red-600 ring-2 ring-red-500/20"
+                  : "bg-neutral-500 hover:bg-neutral-600"
+              }`}
             >
               Unggah Dokumen
             </button>
+
+            {touched && !state.form.skBadanHukumFile && (
+              <p className="mt-1 text-xs text-red-600">
+                File SK Badan Hukum wajib diunggah
+              </p>
+            )}
           </div>
         )}
 
