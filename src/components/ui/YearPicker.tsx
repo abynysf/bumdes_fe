@@ -10,6 +10,8 @@ type Props = {
   className?: string;
   value?: number | undefined;
   onChange?: (year: number | undefined) => void;
+  error?: string;
+  touched?: boolean;
 };
 
 const MIN_YEAR = 1981;
@@ -30,11 +32,17 @@ export const YearPicker = forwardRef<HTMLButtonElement, Props>(
       className,
       value,
       onChange,
+      error,
+      touched = false,
     },
     ref
   ) {
     const id = useId();
     const [open, setOpen] = useState(false);
+
+    // Auto-generate error message if required and empty
+    const showError = touched && required && !value;
+    const errorMessage = error || (showError ? 'Tahun wajib dipilih' : undefined);
 
     // anchor (trigger) DOM node to compute viewport position
     const anchorRef = useRef<HTMLButtonElement | null>(null);
@@ -160,10 +168,15 @@ export const YearPicker = forwardRef<HTMLButtonElement, Props>(
           type="button"
           aria-haspopup="dialog"
           aria-expanded={open}
+          aria-invalid={!!errorMessage}
+          aria-describedby={errorMessage ? `${id}-error` : undefined}
           onClick={() => setOpen((o) => !o)}
           className={clsx(
-            "flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm",
-            "focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
+            "flex w-full items-center justify-between rounded-md border bg-white px-3 py-2 text-sm",
+            "focus:outline-none focus:ring-2",
+            errorMessage
+              ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
+              : "border-neutral-300 focus:border-emerald-500 focus:ring-emerald-500/20",
             className
           )}
         >
@@ -175,8 +188,22 @@ export const YearPicker = forwardRef<HTMLButtonElement, Props>(
           >
             {labelText}
           </span>
-          <CalendarDays className="h-4 w-4 text-neutral-600" />
+          <CalendarDays className={clsx(
+            "h-4 w-4",
+            errorMessage ? "text-red-600" : "text-neutral-600"
+          )} />
         </button>
+
+        {/* Error message */}
+        {errorMessage && (
+          <p
+            id={`${id}-error`}
+            className="mt-1 text-xs text-red-600"
+            role="alert"
+          >
+            {errorMessage}
+          </p>
+        )}
 
         {/* Overlay + Popup via portal */}
         {open &&

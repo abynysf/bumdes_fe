@@ -6,6 +6,7 @@ import { Download, Trash2 } from "lucide-react";
 import AddPengurusBUMModal from "../../components/modals/struktur/AddPengurusBUMModal";
 import AddStrukturDokumenModal from "../../components/modals/struktur/AddStrukturDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
+import WarningModal from "../../components/modals/WarningModal";
 
 /**
  * ===========================
@@ -194,6 +195,10 @@ export default function StrukturTab() {
   const [openSK, setOpenSK] = useState(false);
   const [openBA, setOpenBA] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+
+  // Track if user attempted to submit (for showing validation errors)
+  const [touched, setTouched] = useState(false);
 
   // Handlers
   const updateForm = useCallback(
@@ -211,9 +216,26 @@ export default function StrukturTab() {
   }, []);
 
   const onSave = useCallback(() => {
+    // Mark as touched to show validation errors
+    setTouched(true);
+
+    // Validate required fields: awal and akhir periode
+    if (state.periode.awalPeriode === "" || state.periode.akhirPeriode === "") {
+      setShowWarning(true); // Show warning modal
+      return; // Stop if validation fails
+    }
+
+    // Validate year range: akhir must be >= awal
+    if (state.periode.akhirPeriode < state.periode.awalPeriode) {
+      setShowWarning(true); // Show warning modal
+      return; // Stop if validation fails
+    }
+
     // TODO: ganti dengan API call
     console.log("[SAVE] profil payload:", state);
     setSavedOpen(true);
+    // Reset touched after successful save
+    setTouched(false);
   }, [state]);
 
   type PersonDataPayload = {
@@ -279,6 +301,7 @@ export default function StrukturTab() {
                   : state.periode.awalPeriode
               }
               onChange={(y) => updateForm("awalPeriode", y ?? "")}
+              touched={touched}
             />
             <YearPicker
               label="Akhir Periode Kepengurusan"
@@ -290,6 +313,14 @@ export default function StrukturTab() {
                   : state.periode.akhirPeriode
               }
               onChange={(y) => updateForm("akhirPeriode", y ?? "")}
+              touched={touched}
+              error={
+                state.periode.akhirPeriode !== "" &&
+                state.periode.awalPeriode !== "" &&
+                state.periode.akhirPeriode < state.periode.awalPeriode
+                  ? "Harus lebih besar dari awal periode"
+                  : undefined
+              }
             />
           </div>
           <p className="mt-1 text-xs text-red-500">
@@ -306,8 +337,8 @@ export default function StrukturTab() {
           buttonLabel="Tambah Data"
           onButtonClick={() => setOpenPengurus(true)}
         >
-          <div className="border border-t-neutral-200">
-            <table className="w-full border-separate border-spacing-0">
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                   <th className="border-b border-neutral-200 px-3 py-3">
@@ -381,8 +412,8 @@ export default function StrukturTab() {
           buttonLabel="Tambah Data"
           onButtonClick={() => setOpenKepalaUnit(true)}
         >
-          <div className="border border-t-neutral-200">
-            <table className="w-full border-separate border-spacing-0">
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                   <th className="border-b border-neutral-200 px-3 py-3">
@@ -456,8 +487,8 @@ export default function StrukturTab() {
           buttonLabel="Tambah Data"
           onButtonClick={() => setOpenPengawas(true)}
         >
-          <div className="border border-t-neutral-200">
-            <table className="w-full border-separate border-spacing-0">
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                   <th className="border-b border-neutral-200 px-3 py-3">No</th>
@@ -529,12 +560,16 @@ export default function StrukturTab() {
           <DataCard
             label="Surat Keputusan BUM Desa"
             buttonLabel="Tambah Data"
-            note="Periode kepengerusan telah diubah. Harap masukkan data terbaru!"
+            note={
+              state.suratKeputusan.length > 0
+                ? "Periode kepengerusan telah diubah. Harap masukkan data terbaru!"
+                : undefined
+            }
             className="flex-1"
             onButtonClick={() => setOpenSK(true)}
           >
-            <div className="border border-t-neutral-200">
-              <table className="w-full border-separate border-spacing-0">
+            <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+              <table className="min-w-full w-full border-separate border-spacing-0">
                 <thead>
                   <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                     <th className="border-b border-neutral-200 px-3 py-3">
@@ -622,12 +657,16 @@ export default function StrukturTab() {
           <DataCard
             label="Berita Acara Serah Terima Pengurus BUM Desa"
             buttonLabel="Tambah Data"
-            note="Periode kepengerusan telah diubah. Harap masukkan data terbaru!"
+            note={
+              state.beritaAcara.length > 0
+                ? "Periode kepengerusan telah diubah. Harap masukkan data terbaru!"
+                : undefined
+            }
             className="flex-1"
             onButtonClick={() => setOpenBA(true)}
           >
-            <div className="border border-t-neutral-200">
-              <table className="w-full border-separate border-spacing-0">
+            <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+              <table className="min-w-full w-full border-separate border-spacing-0">
                 <thead>
                   <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                     <th className="border-b border-neutral-200 px-3 py-3">
@@ -760,6 +799,14 @@ export default function StrukturTab() {
         onClose={() => setSavedOpen(false)}
         title="Data Struktur Tersimpan"
         autoCloseMs={1500}
+      />
+
+      <WarningModal
+        open={showWarning}
+        onClose={() => setShowWarning(false)}
+        type="warning"
+        title="Data Belum Lengkap"
+        message="Mohon lengkapi Awal Periode dan Akhir Periode Kepengurusan sebelum menyimpan."
       />
     </div>
   );

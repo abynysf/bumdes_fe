@@ -21,14 +21,25 @@ export default function AddDokumenModal({ open, onClose, onSave }: Props) {
   const [nama, setNama] = useState("");
   const [nomor, setNomor] = useState("");
   const [file, setFile] = useState<string>("");
+  const [touched, setTouched] = useState(false);
 
   // upload modal visibility
   const [openUpload, setOpenUpload] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setTouched(true); // Show validation errors
+
     if (tahun === "" || !nama || !nomor || !file) return; // simple guard
+
     onSave({ tahun: Number(tahun), nama, nomor, file });
+
+    // Reset form
+    setTahun("");
+    setNama("");
+    setNomor("");
+    setFile("");
+    setTouched(false);
     onClose();
   }
 
@@ -39,7 +50,7 @@ export default function AddDokumenModal({ open, onClose, onSave }: Props) {
         onClose={onClose}
         title="Unggah Perdes Pendirian BUM Desa"
       >
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           {/* Tahun */}
           <div>
             <YearPicker
@@ -48,6 +59,7 @@ export default function AddDokumenModal({ open, onClose, onSave }: Props) {
               required
               value={tahun === "" ? undefined : tahun}
               onChange={(y) => setTahun(y ?? "")}
+              touched={touched}
             />
             <p className="mt-1 text-xs text-neutral-400">
               Tahun Pengesahan Perdes
@@ -62,6 +74,7 @@ export default function AddDokumenModal({ open, onClose, onSave }: Props) {
               value={nama}
               onChange={(e: any) => setNama(e.target?.value ?? e)} // supports either event or value
               required
+              touched={touched}
             />
             <p className="mt-1 text-xs text-neutral-400">Nama Dokumen</p>
           </div>
@@ -74,6 +87,7 @@ export default function AddDokumenModal({ open, onClose, onSave }: Props) {
               value={nomor}
               onChange={(e: any) => setNomor(e.target?.value ?? e)}
               required
+              touched={touched}
             />
             <p className="mt-1 text-xs text-neutral-400">Nomor Perdes</p>
           </div>

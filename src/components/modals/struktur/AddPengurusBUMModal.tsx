@@ -35,10 +35,22 @@ export default function AddPengurusBUMModal({
   const [unit, setUnit] = useState("");
   const [pekerjaan, setPekerjaan] = useState("");
   const [nomorTelepon, setNomorTelepon] = useState("");
+  const [touched, setTouched] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!nama || !pekerjaan || !nomorTelepon) return;
+    setTouched(true); // Show validation errors
+
+    // Validate required fields based on visibility
+    const requiredFieldsFilled =
+      nama &&
+      pekerjaan &&
+      nomorTelepon &&
+      (!ShowJabatan || jabatan) &&
+      (!ShowUnit || unit);
+
+    if (!requiredFieldsFilled) return;
+
     const payload: PersonData = {
       nama,
       pekerjaan,
@@ -47,6 +59,14 @@ export default function AddPengurusBUMModal({
       ...(ShowUnit ? { unit } : {}),
     };
     onSave(payload);
+
+    // Reset form
+    setJabatan("");
+    setNama("");
+    setUnit("");
+    setPekerjaan("");
+    setNomorTelepon("");
+    setTouched(false);
     onClose();
   }
 
@@ -56,7 +76,7 @@ export default function AddPengurusBUMModal({
       onClose={onClose}
       title={title ?? "Data Kepala Unit BUM Desa"}
     >
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         {ShowJabatan && (
           <div>
             <TextInput
@@ -65,6 +85,7 @@ export default function AddPengurusBUMModal({
               value={jabatan}
               onChange={(e: any) => setJabatan(e.target?.value ?? e)}
               required
+              touched={touched}
             />
           </div>
         )}
@@ -77,6 +98,7 @@ export default function AddPengurusBUMModal({
               value={unit}
               onChange={(e: any) => setUnit(e.target?.value ?? e)}
               required
+              touched={touched}
             />
           </div>
         )}
@@ -88,6 +110,7 @@ export default function AddPengurusBUMModal({
             value={nama}
             onChange={(e: any) => setNama(e.target?.value ?? e)}
             required
+            touched={touched}
           />
         </div>
 
@@ -98,6 +121,7 @@ export default function AddPengurusBUMModal({
             value={pekerjaan}
             onChange={(e: any) => setPekerjaan(e.target?.value ?? e)}
             required
+            touched={touched}
           />
         </div>
 
@@ -108,6 +132,7 @@ export default function AddPengurusBUMModal({
             value={nomorTelepon}
             onChange={(e: any) => setNomorTelepon(e.target?.value ?? e)}
             required
+            touched={touched}
           />
         </div>
 

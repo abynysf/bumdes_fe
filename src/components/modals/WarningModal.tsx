@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { CheckCircle2, X } from "lucide-react";
+import { CheckCircle2, X, AlertTriangle, AlertCircle } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -7,13 +7,16 @@ type Props = {
   title?: string;
   message?: string;
   autoCloseMs?: number;
+  type?: "success" | "warning" | "error";
 };
 
 export default function WarningModal({
   open,
   onClose,
   title = "Peringatan",
+  message,
   autoCloseMs,
+  type = "warning",
 }: Props) {
   useEffect(() => {
     if (!open) return;
@@ -52,14 +55,28 @@ export default function WarningModal({
           <X className="h-4 w-4 text-neutral-500" />
         </button>
 
-        {/* ✅ checkmark icon */}
+        {/* Icon based on type */}
         <div className="mb-3 flex items-center justify-center">
-          <CheckCircle2 className="h-15 w-15 text-emerald-600" />
+          {type === "success" && (
+            <CheckCircle2 className="h-16 w-16 text-emerald-600" />
+          )}
+          {type === "warning" && (
+            <AlertTriangle className="h-16 w-16 text-amber-500" />
+          )}
+          {type === "error" && (
+            <AlertCircle className="h-16 w-16 text-red-600" />
+          )}
         </div>
 
-        <h3 className="text-center text-base font-semibold text-neutral-800">
+        <h3 className="text-center text-lg font-semibold text-neutral-800">
           {title}
         </h3>
+
+        {message && (
+          <p className="mt-2 text-center text-sm text-neutral-600">
+            {message}
+          </p>
+        )}
 
         <div className="mt-5 flex justify-center">
           <button

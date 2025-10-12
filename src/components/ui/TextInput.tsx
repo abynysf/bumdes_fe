@@ -4,13 +4,19 @@ import clsx from "clsx";
 type Props = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
   required?: boolean;
+  error?: string;
+  touched?: boolean;
 };
 
 const TextInput = forwardRef<HTMLInputElement, Props>(
-  ({ label, required, className, id, ...rest }, ref) => {
+  ({ label, required, error, touched, className, id, ...rest }, ref) => {
     const autoId = useId();
     const inputId = id ?? `input-${autoId}`;
     const isRequired = required ?? false;
+
+    // Show error if there's an explicit error message OR if field is required, touched, and empty
+    const showError = touched && isRequired && !rest.value;
+    const errorMessage = error || (showError ? "Data wajib diisi" : undefined);
 
     return (
       <div className="w-full">
@@ -29,13 +35,19 @@ const TextInput = forwardRef<HTMLInputElement, Props>(
           ref={ref}
           required={isRequired}
           className={clsx(
-            "block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm",
+            "block w-full rounded-md border bg-white px-3 py-2 text-sm",
             "text-neutral-700 placeholder:text-neutral-400",
-            "focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
+            errorMessage
+              ? "border-red-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              : "border-neutral-300 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
             className
           )}
           {...rest}
         />
+
+        {errorMessage && (
+          <p className="mt-1 text-xs text-red-600">{errorMessage}</p>
+        )}
       </div>
     );
   }

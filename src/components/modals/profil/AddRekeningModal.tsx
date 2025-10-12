@@ -30,6 +30,7 @@ export default function AddRekeningModal({ open, onClose, onSave }: Props) {
   const [nama, setNama] = useState("");
   const [nomor, setNomor] = useState("");
   const [ketahanan, setKetahanan] = useState(false);
+  const [touched, setTouched] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -37,12 +38,16 @@ export default function AddRekeningModal({ open, onClose, onSave }: Props) {
       setNama("");
       setNomor("");
       setKetahanan(false);
+      setTouched(false);
     }
   }, [open]);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setTouched(true); // Show validation errors
+
     if (!bank || !nama || !nomor) return;
+
     onSave({ bank, nama, nomor, ketahananPangan: ketahanan });
     onClose(); // will trigger the reset next time it opens
   }
@@ -58,6 +63,7 @@ export default function AddRekeningModal({ open, onClose, onSave }: Props) {
           options={BANK_OPTIONS}
           value={bank}
           onChange={(val) => setBank(val)}
+          touched={touched}
         />
 
         {/* Nama Pemilik Rekening */}
@@ -67,6 +73,7 @@ export default function AddRekeningModal({ open, onClose, onSave }: Props) {
           placeholder="Masukkan nama pemilik rekening"
           value={nama}
           onChange={(e: any) => setNama(e?.target?.value ?? e)}
+          touched={touched}
         />
 
         {/* Nomor Rekening */}
@@ -76,6 +83,7 @@ export default function AddRekeningModal({ open, onClose, onSave }: Props) {
           placeholder="Masukkan nomor rekening"
           value={nomor}
           onChange={(e: any) => setNomor(e?.target?.value ?? e)}
+          touched={touched}
         />
 
         {/* Checkbox */}

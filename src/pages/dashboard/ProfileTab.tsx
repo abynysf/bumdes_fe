@@ -9,6 +9,7 @@ import AddDokumenModal from "../../components/modals/profil/AddDokumenModal";
 import AddRekeningModal from "../../components/modals/profil/AddRekeningModal";
 import UploadDokumenModal from "../../components/modals/UploadDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
+import WarningModal from "../../components/modals/WarningModal";
 import { Download, Trash2 } from "lucide-react";
 
 /* ===========================
@@ -139,6 +140,10 @@ export default function ProfileTab() {
   const [openDokumen, setOpenDokumen] = useState(false);
   const [openUploadSK, setOpenUploadSK] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+
+  // Track if user attempted to submit (for showing validation errors)
+  const [touched, setTouched] = useState(false);
 
   // Handlers
   const updateForm = useCallback(
@@ -172,9 +177,25 @@ export default function ProfileTab() {
   }, []);
 
   const onSave = useCallback(() => {
+    // Mark as touched to show validation errors
+    setTouched(true);
+
+    // Validate 4 mandatory fields
+    if (
+      !state.form.namaLengkap ||
+      !state.form.statusBadanHukum ||
+      state.form.tahunPendirian === "" ||
+      !state.form.alamatKantor
+    ) {
+      setShowWarning(true);
+      return;
+    }
+
     // TODO: ganti dengan API call
     console.log("[SAVE] profil payload:", state);
     setSavedOpen(true);
+    // Reset touched after successful save
+    setTouched(false);
   }, [state]);
 
   // modal save helpers
@@ -199,6 +220,7 @@ export default function ProfileTab() {
             placeholder="Masukkan nama lengkap BUM Desa"
             value={state.form.namaLengkap}
             onChange={(e) => updateForm("namaLengkap", e.target.value)}
+            touched={touched}
           />
           <p className="mt-1 text-xs text-neutral-400">
             Wajib diisi. Sesuai dengan yang terdaftar pada Administrasi Hukum
@@ -216,6 +238,7 @@ export default function ProfileTab() {
           ]}
           value={state.form.statusBadanHukum}
           onChange={(value) => updateForm("statusBadanHukum", value)}
+          touched={touched}
         />
 
         {state.form.statusBadanHukum === "terbit" && (
@@ -251,6 +274,7 @@ export default function ProfileTab() {
               : state.form.tahunPendirian
           }
           onChange={(y) => updateForm("tahunPendirian", y ?? "")}
+          touched={touched}
         />
 
         <Textarea
@@ -260,6 +284,7 @@ export default function ProfileTab() {
           placeholder="Masukkan alamat kantor"
           value={state.form.alamatKantor}
           onChange={(e) => updateForm("alamatKantor", e.target.value)}
+          touched={touched}
         />
 
         {/* Dokumen list */}
@@ -268,8 +293,8 @@ export default function ProfileTab() {
           buttonLabel="Tambah Dokumen"
           onButtonClick={() => setOpenDokumen(true)}
         >
-          <div className="border border-t-neutral-200">
-            <table className="w-full border-separate border-spacing-0">
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                   <th className="border-b border-neutral-200 px-3 py-3">
@@ -392,8 +417,8 @@ export default function ProfileTab() {
           buttonLabel="Tambah Rekening"
           onButtonClick={() => setOpenRekening(true)}
         >
-          <div className="border border-t-neutral-200">
-            <table className="w-full border-separate border-spacing-0">
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                   <th className="border-b border-neutral-200 px-3 py-3">
@@ -491,6 +516,14 @@ export default function ProfileTab() {
         onClose={() => setSavedOpen(false)}
         title="Data Profil Tersimpan"
         autoCloseMs={1500}
+      />
+
+      <WarningModal
+        open={showWarning}
+        onClose={() => setShowWarning(false)}
+        type="warning"
+        title="Data Belum Lengkap"
+        message="Mohon lengkapi data wajib sebelum menyimpan."
       />
     </div>
   );

@@ -12,6 +12,8 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, "onChange"> & {
   placeholder?: string;
   value?: string;
   onChange?: (value: string) => void; // your API
+  error?: string;
+  touched?: boolean;
 };
 
 const Dropdown = forwardRef<HTMLButtonElement, Props>(function Dropdown(
@@ -24,6 +26,8 @@ const Dropdown = forwardRef<HTMLButtonElement, Props>(function Dropdown(
     placeholder,
     value,
     onChange,
+    error,
+    touched,
     ...rest
   },
   ref
@@ -35,6 +39,10 @@ const Dropdown = forwardRef<HTMLButtonElement, Props>(function Dropdown(
 
   const selectedLabel =
     options.find((o) => o.value === value)?.label ?? placeholder;
+
+  // Show error if there's an explicit error message OR if field is required, touched, and empty
+  const showError = touched && isRequired && !value;
+  const errorMessage = error || (showError ? "Data wajib dipilih" : undefined);
 
   return (
     <div className="w-full" {...rest}>
@@ -55,8 +63,10 @@ const Dropdown = forwardRef<HTMLButtonElement, Props>(function Dropdown(
           type="button"
           onClick={() => setOpen((o) => !o)}
           className={clsx(
-            "flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm",
-            "focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
+            "flex w-full items-center justify-between rounded-md border bg-white px-3 py-2 text-sm",
+            errorMessage
+              ? "border-red-500 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              : "border-neutral-300 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
             className
           )}
         >
@@ -68,7 +78,10 @@ const Dropdown = forwardRef<HTMLButtonElement, Props>(function Dropdown(
           >
             {selectedLabel}
           </span>
-          <ChevronDown className="h-4 w-4 text-neutral-500" />
+          <ChevronDown className={clsx(
+            "h-4 w-4",
+            errorMessage ? "text-red-500" : "text-neutral-500"
+          )} />
         </button>
 
         {open && (
@@ -108,6 +121,10 @@ const Dropdown = forwardRef<HTMLButtonElement, Props>(function Dropdown(
           </div>
         )}
       </div>
+
+      {errorMessage && (
+        <p className="mt-1 text-xs text-red-600">{errorMessage}</p>
+      )}
     </div>
   );
 });

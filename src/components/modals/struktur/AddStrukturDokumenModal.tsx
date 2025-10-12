@@ -30,15 +30,39 @@ export default function AddStrukturDokumenModal({
   const [akhir, setAkhir] = useState<number | "">("");
   const [nomor, setNomor] = useState("");
   const [file, setFile] = useState<string>("");
+  const [touched, setTouched] = useState(false);
 
   // upload modal visibility
   const [openUpload, setOpenUpload] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (awal === "" || akhir === "" || !nomor || !file) return; // simple guard
+    setTouched(true); // Show validation errors
+
+    // Only validate required fields (years)
+    if (awal === "" || akhir === "") {
+      return; // Validation failed - errors will show
+    }
+
+    // Check year range
+    if (akhir < awal) {
+      return; // Error already shown via YearPicker error prop
+    }
+
     const periode = `${awal}–${akhir}`;
-    onSave({ periode, nomor, file });
+    // Use "-" for empty optional fields
+    onSave({
+      periode,
+      nomor: nomor.trim() || "-",
+      file: file || "-"
+    });
+
+    // Reset form
+    setAwal("");
+    setAkhir("");
+    setNomor("");
+    setFile("");
+    setTouched(false);
     onClose();
   }
 
@@ -49,7 +73,7 @@ export default function AddStrukturDokumenModal({
         onClose={onClose}
         title={title ?? "Tambah Data Dokumen"}
       >
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           {/* Periode (awal-akhir) */}
           <div>
             <div className="flex gap-2">
@@ -59,6 +83,7 @@ export default function AddStrukturDokumenModal({
                 required
                 value={awal === "" ? undefined : awal}
                 onChange={(y) => setAwal(y ?? "")}
+                touched={touched}
               />
               <YearPicker
                 label="Akhir Periode"
@@ -66,6 +91,12 @@ export default function AddStrukturDokumenModal({
                 required
                 value={akhir === "" ? undefined : akhir}
                 onChange={(y) => setAkhir(y ?? "")}
+                touched={touched}
+                error={
+                  akhir !== "" && awal !== "" && akhir < awal
+                    ? "Harus lebih besar dari awal periode"
+                    : undefined
+                }
               />
             </div>
             <p className="mt-1 text-xs text-neutral-400">

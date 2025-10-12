@@ -65,6 +65,13 @@ function isUrl(value: string): boolean {
   }
 }
 
+function formatCurrency(value: number | "" | undefined): string {
+  if (value === "" || value === undefined || value === null) {
+    return "-";
+  }
+  return "Rp" + Intl.NumberFormat("id-ID").format(Number(value));
+}
+
 /**
  * ===========================
  * Reducer (sederhana & terpusat)
@@ -209,8 +216,8 @@ export default function LegalitasTab() {
           buttonLabel="Tambah Dokumen"
           onButtonClick={() => setOpenAD(true)}
         >
-          <div className="border border-t-neutral-200">
-            <table className="w-full border-separate border-spacing-0">
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                   <th className="border-b border-neutral-200 px-3 py-3">
@@ -253,11 +260,7 @@ export default function LegalitasTab() {
                         {d.nama}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {d.nominal === "" || d.nominal === undefined
-                          ? "-"
-                          : Intl.NumberFormat("id-ID").format(
-                              Number(d.nominal)
-                            )}
+                        {formatCurrency(d.nominal)}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         {isUrl(d.file) ? (
@@ -311,8 +314,8 @@ export default function LegalitasTab() {
           buttonLabel="Tambah Dokumen"
           onButtonClick={() => setOpenART(true)}
         >
-          <div className="border border-t-neutral-200">
-            <table className="w-full border-separate border-spacing-0">
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                   <th className="border-b border-neutral-200 px-3 py-3">
@@ -355,11 +358,7 @@ export default function LegalitasTab() {
                         {d.nama}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {d.nominal === "" || d.nominal === undefined
-                          ? "-"
-                          : Intl.NumberFormat("id-ID").format(
-                              Number(d.nominal)
-                            )}
+                        {formatCurrency(d.nominal)}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         {isUrl(d.file) ? (
@@ -413,8 +412,8 @@ export default function LegalitasTab() {
           buttonLabel="Tambah Dokumen"
           onButtonClick={() => setOpenPerdes(true)}
         >
-          <div className="border border-t-neutral-200">
-            <table className="w-full border-separate border-spacing-0">
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                   <th className="border-b border-neutral-200 px-3 py-3">
@@ -460,14 +459,10 @@ export default function LegalitasTab() {
                         {d.nama}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {d.nomor}
+                        {d.nomor || "-"}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {d.nominal === "" || d.nominal === undefined
-                          ? "-"
-                          : Intl.NumberFormat("id-ID").format(
-                              Number(d.nominal)
-                            )}
+                        {formatCurrency(d.nominal)}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         {isUrl(d.file) ? (
@@ -529,7 +524,7 @@ export default function LegalitasTab() {
         title="Tambah AD BUM Desa"
         showNominal
         namaLabel="Nama Dokumen (AD)"
-        nominalLabel="Nominal (Rp)"
+        nominalLabel="Nominal"
       />
 
       <AddAnggaranModal
@@ -539,7 +534,7 @@ export default function LegalitasTab() {
         title="Tambah ART BUM Desa"
         showNominal
         namaLabel="Nama Dokumen (ART)"
-        nominalLabel="Nominal (Rp)"
+        nominalLabel="Nominal"
       />
 
       <AddAnggaranModal
@@ -551,7 +546,7 @@ export default function LegalitasTab() {
         showNominal
         namaLabel="Nama Perdes"
         nomorLabel="Nomor Perdes"
-        nominalLabel="Nominal (Rp)"
+        nominalLabel="Nominal"
       />
       <SaveResultModal
         open={savedOpen}

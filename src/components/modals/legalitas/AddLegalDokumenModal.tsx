@@ -38,34 +38,47 @@ export default function AddLegalDokumenModal({
   showNominal = false,
   namaLabel = "Nama Dokumen",
   nomorLabel = "Nomor Dokumen",
-  nominalLabel = "Nominal (Rp)",
+  nominalLabel = "Nominal",
 }: Props) {
   const [tahun, setTahun] = useState<number | "">("");
   const [nama, setNama] = useState("");
   const [nomor, setNomor] = useState("");
   const [nominal, setNominal] = useState<number | "">("");
   const [file, setFile] = useState<string>("");
+  const [touched, setTouched] = useState(false);
 
   const [openUpload, setOpenUpload] = useState(false);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (tahun === "" || !nama || !file) return;
+    setTouched(true); // Show validation errors
+
+    // Only validate required fields: tahun and nama
+    if (tahun === "" || !nama) return;
+
     const payload: LegalDokumenPayload = {
       tahun,
       nama,
-      file,
-      ...(showNomor ? { nomor } : {}),
-      ...(showNominal ? { nominal } : {}),
+      file: file || "-",
+      ...(showNomor ? { nomor: nomor || "-" } : {}),
+      ...(showNominal ? { nominal: nominal || "" } : {}),
     };
     onSave(payload);
+
+    // Reset form
+    setTahun("");
+    setNama("");
+    setNomor("");
+    setNominal("");
+    setFile("");
+    setTouched(false);
     onClose();
   }
 
   return (
     <>
       <Modal open={open} onClose={onClose} title={title ?? "Tambah Dokumen"}>
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit} noValidate>
           {/* Tahun */}
           <YearPicker
             label="Tahun"
@@ -73,6 +86,7 @@ export default function AddLegalDokumenModal({
             placeholder="Pilih tahun"
             value={tahun === "" ? undefined : tahun}
             onChange={(y) => setTahun(y ?? "")}
+            touched={touched}
           />
 
           {/* Nama */}
@@ -81,6 +95,8 @@ export default function AddLegalDokumenModal({
             placeholder="Masukkan nama dokumen"
             value={nama}
             onChange={(e: any) => setNama(e.target?.value ?? e)}
+            required
+            touched={touched}
           />
 
           {/* Nomor (opsional) */}
