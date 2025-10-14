@@ -1,9 +1,20 @@
 import { Outlet, NavLink } from "react-router-dom";
+import { useState } from "react";
 import Sidebar from "../components/layout/Sidebar";
 import Topbar from "../components/layout/Topbar";
+import { useIsMobile } from "../hooks";
 import clsx from "clsx";
 
 export default function Dashboard() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  const handleSidebarClose = () => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  };
+
   const tabs = [
     { label: "Profil", to: "profile" },
     { label: "Struktur", to: "struktur" },
@@ -13,11 +24,14 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen">
       {/* left rail */}
-      <Sidebar />
+      <Sidebar
+        isOpen={sidebarOpen || !isMobile}
+        onClose={handleSidebarClose}
+      />
 
       {/* main column */}
       <div className="w-full overflow-y-auto">
-        <Topbar />
+        <Topbar onMenuClick={() => setSidebarOpen(true)} />
 
         {/* body */}
         <main>
