@@ -5,20 +5,70 @@ interface TopbarProps {
   onMenuClick?: () => void;
 }
 
+// Route configuration for dynamic headers and breadcrumbs
+type RouteConfig = {
+  title: string;
+  breadcrumb?: {
+    parent: { label: string; to: string };
+    current: string;
+  };
+};
+
+const routeConfigs: Record<string, RouteConfig> = {
+  "/dashboard/profile": {
+    title: "Manajemen Profil BUM Desa",
+    breadcrumb: {
+      parent: { label: "Profil BUM Desa", to: "/dashboard/profile" },
+      current: "Profil",
+    },
+  },
+  "/dashboard/struktur": {
+    title: "Manajemen Profil BUM Desa",
+    breadcrumb: {
+      parent: { label: "Profil BUM Desa", to: "/dashboard/profile" },
+      current: "Struktur",
+    },
+  },
+  "/dashboard/legalitas": {
+    title: "Manajemen Profil BUM Desa",
+    breadcrumb: {
+      parent: { label: "Profil BUM Desa", to: "/dashboard/profile" },
+      current: "Legalitas",
+    },
+  },
+  "/assets": {
+    title: "Aset BUM Desa",
+    breadcrumb: {
+      parent: { label: "Aset BUM Desa", to: "/assets" },
+      current: "Daftar Aset",
+    },
+  },
+  "/business-units": {
+    title: "Unit Usaha BUM Desa",
+    breadcrumb: {
+      parent: { label: "Unit Usaha BUM Desa", to: "/business-units" },
+      current: "Daftar Unit Usaha",
+    },
+  },
+  "/financial-reports": {
+    title: "Laporan BUM Desa",
+    breadcrumb: {
+      parent: { label: "Laporan BUM Desa", to: "/financial-reports" },
+      current: "Daftar Laporan",
+    }, 
+  },
+};
+
 /**
  * Responsive Topbar with hamburger menu for mobile
  */
 export default function Topbar({ onMenuClick }: TopbarProps) {
   const location = useLocation();
 
-  // Map routes -> labels
-  const crumbs: Record<string, string> = {
-    "/dashboard/profile": "Profil",
-    "/dashboard/struktur": "Struktur",
-    "/dashboard/legalitas": "Legalitas",
+  // Get route config or fallback
+  const config = routeConfigs[location.pathname] || {
+    title: "BUM Desa GO",
   };
-
-  const currentLabel = crumbs[location.pathname] ?? "";
 
   return (
     <header className="sticky top-0 z-30 border-b bg-white backdrop-blur-sm px-4 py-4 sm:px-6 sm:py-6">
@@ -34,26 +84,28 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
 
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-neutral-800 truncate">
-            Manajemen Profil BUM Desa
+            {config.title}
           </h1>
 
-          {/* dynamic breadcrumb */}
-          <nav className="mt-2 sm:mt-3 text-xs sm:text-sm" aria-label="Breadcrumb">
-            <ol className="flex gap-2 items-center">
-              <li>
-                <Link
-                  to="/dashboard/profile"
-                  className="text-neutral-500 hover:text-neutral-700 hover:underline transition-colors"
-                >
-                  Profil BUM Desa
-                </Link>
-              </li>
-              <li className="text-neutral-300" aria-hidden="true">/</li>
-              <li className="text-neutral-600 font-medium truncate" aria-current="page">
-                {currentLabel || "Profil"}
-              </li>
-            </ol>
-          </nav>
+          {/* dynamic breadcrumb - only show for dashboard routes */}
+          {config.breadcrumb && (
+            <nav className="mt-2 sm:mt-3 text-xs sm:text-sm" aria-label="Breadcrumb">
+              <ol className="flex gap-2 items-center">
+                <li>
+                  <Link
+                    to={config.breadcrumb.parent.to}
+                    className="text-neutral-500 hover:text-neutral-700 hover:underline transition-colors"
+                  >
+                    {config.breadcrumb.parent.label}
+                  </Link>
+                </li>
+                <li className="text-neutral-300" aria-hidden="true">/</li>
+                <li className="text-neutral-600 font-medium truncate" aria-current="page">
+                  {config.breadcrumb.current}
+                </li>
+              </ol>
+            </nav>
+          )}
         </div>
       </div>
     </header>
