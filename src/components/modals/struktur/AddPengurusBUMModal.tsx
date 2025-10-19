@@ -9,6 +9,8 @@ type PersonData = {
   nama: string;
   pekerjaan: string;
   nomorTelepon: string;
+  gaji?: string;
+  keterangan?: string;
 };
 
 type Props = {
@@ -21,6 +23,8 @@ type Props = {
   /** Toggle field visibility per use-case */
   ShowJabatan?: boolean;
   ShowUnit?: boolean;
+  ShowGaji?: boolean;
+  ShowKeterangan?: boolean;
 };
 
 export default function AddPengurusBUMModal({
@@ -31,12 +35,16 @@ export default function AddPengurusBUMModal({
   initialData,
   ShowJabatan = false,
   ShowUnit = false,
+  ShowGaji = false,
+  ShowKeterangan = false,
 }: Props) {
   const [jabatan, setJabatan] = useState("");
   const [nama, setNama] = useState("");
   const [unit, setUnit] = useState("");
   const [pekerjaan, setPekerjaan] = useState("");
   const [nomorTelepon, setNomorTelepon] = useState("");
+  const [gaji, setGaji] = useState("");
+  const [keterangan, setKeterangan] = useState("");
   const [touched, setTouched] = useState(false);
 
   // Populate fields when editing
@@ -47,6 +55,8 @@ export default function AddPengurusBUMModal({
       setUnit(initialData.unit ?? "");
       setPekerjaan(initialData.pekerjaan);
       setNomorTelepon(initialData.nomorTelepon);
+      setGaji(initialData.gaji ?? "");
+      setKeterangan(initialData.keterangan ?? "");
       setTouched(false);
     } else if (open && !initialData) {
       // Reset form when opening for new entry
@@ -55,6 +65,8 @@ export default function AddPengurusBUMModal({
       setUnit("");
       setPekerjaan("");
       setNomorTelepon("");
+      setGaji("");
+      setKeterangan("");
       setTouched(false);
     }
   }, [open, initialData]);
@@ -69,7 +81,8 @@ export default function AddPengurusBUMModal({
       pekerjaan &&
       nomorTelepon &&
       (!ShowJabatan || jabatan) &&
-      (!ShowUnit || unit);
+      (!ShowUnit || unit) &&
+      (!ShowGaji || gaji);
 
     if (!requiredFieldsFilled) return;
 
@@ -79,6 +92,8 @@ export default function AddPengurusBUMModal({
       nomorTelepon,
       ...(ShowJabatan ? { jabatan } : {}),
       ...(ShowUnit ? { unit } : {}),
+      ...(ShowGaji ? { gaji } : {}),
+      ...(ShowKeterangan ? { keterangan } : {}),
     };
     onSave(payload);
   }
@@ -148,6 +163,31 @@ export default function AddPengurusBUMModal({
             touched={touched}
           />
         </div>
+
+        {ShowGaji && (
+          <div>
+            <TextInput
+              label="Gaji"
+              placeholder="Masukkan gaji (contoh: Rp 2.500.000)"
+              value={gaji}
+              onChange={(e: any) => setGaji(e.target?.value ?? e)}
+              required
+              touched={touched}
+            />
+          </div>
+        )}
+
+        {ShowKeterangan && (
+          <div>
+            <TextInput
+              label="Keterangan"
+              placeholder="Masukkan keterangan (opsional)"
+              value={keterangan}
+              onChange={(e: any) => setKeterangan(e.target?.value ?? e)}
+              touched={touched}
+            />
+          </div>
+        )}
 
         <div className="pt-2">
           <Button type="submit">Simpan</Button>

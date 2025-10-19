@@ -33,9 +33,25 @@ type DokumenPerdes = {
   file: string;
 };
 
+type DokumenSimple = {
+  tahun: number;
+  nomor: string;
+  file: string;
+};
+
+type DokumenAsetDesa = {
+  tahun: number;
+  nama: string;
+  file: string;
+};
+
 type LegalitasState = {
   anggaranDasar: BaseDokumen[];
   anggaranRumahTangga: DokumenART[];
+  ahuBadanHukum: DokumenSimple[];
+  npwp: DokumenSimple[];
+  nib: DokumenSimple[];
+  dokumenAsetDesa: DokumenAsetDesa[];
   perdesPenyertaanModal: DokumenPerdes[];
 };
 
@@ -47,6 +63,10 @@ type LegalitasState = {
 const INITIAL: LegalitasState = {
   anggaranDasar: [],
   anggaranRumahTangga: [],
+  ahuBadanHukum: [],
+  npwp: [],
+  nib: [],
+  dokumenAsetDesa: [],
   perdesPenyertaanModal: [],
 };
 
@@ -85,6 +105,18 @@ type Action =
   | { type: "art/add"; payload: DokumenART }
   | { type: "art/update"; index: number; payload: DokumenART }
   | { type: "art/remove"; index: number }
+  | { type: "ahu/add"; payload: DokumenSimple }
+  | { type: "ahu/update"; index: number; payload: DokumenSimple }
+  | { type: "ahu/remove"; index: number }
+  | { type: "npwp/add"; payload: DokumenSimple }
+  | { type: "npwp/update"; index: number; payload: DokumenSimple }
+  | { type: "npwp/remove"; index: number }
+  | { type: "nib/add"; payload: DokumenSimple }
+  | { type: "nib/update"; index: number; payload: DokumenSimple }
+  | { type: "nib/remove"; index: number }
+  | { type: "aset/add"; payload: DokumenAsetDesa }
+  | { type: "aset/update"; index: number; payload: DokumenAsetDesa }
+  | { type: "aset/remove"; index: number }
   | { type: "perdes/add"; payload: DokumenPerdes }
   | { type: "perdes/update"; index: number; payload: DokumenPerdes }
   | { type: "perdes/remove"; index: number }
@@ -130,6 +162,78 @@ function reducer(state: LegalitasState, action: Action): LegalitasState {
         ),
       };
 
+    case "ahu/add":
+      return {
+        ...state,
+        ahuBadanHukum: [...state.ahuBadanHukum, action.payload],
+      };
+    case "ahu/update":
+      return {
+        ...state,
+        ahuBadanHukum: state.ahuBadanHukum.map((item, i) =>
+          i === action.index ? action.payload : item
+        ),
+      };
+    case "ahu/remove":
+      return {
+        ...state,
+        ahuBadanHukum: state.ahuBadanHukum.filter((_, i) => i !== action.index),
+      };
+
+    case "npwp/add":
+      return {
+        ...state,
+        npwp: [...state.npwp, action.payload],
+      };
+    case "npwp/update":
+      return {
+        ...state,
+        npwp: state.npwp.map((item, i) =>
+          i === action.index ? action.payload : item
+        ),
+      };
+    case "npwp/remove":
+      return {
+        ...state,
+        npwp: state.npwp.filter((_, i) => i !== action.index),
+      };
+
+    case "nib/add":
+      return {
+        ...state,
+        nib: [...state.nib, action.payload],
+      };
+    case "nib/update":
+      return {
+        ...state,
+        nib: state.nib.map((item, i) =>
+          i === action.index ? action.payload : item
+        ),
+      };
+    case "nib/remove":
+      return {
+        ...state,
+        nib: state.nib.filter((_, i) => i !== action.index),
+      };
+
+    case "aset/add":
+      return {
+        ...state,
+        dokumenAsetDesa: [...state.dokumenAsetDesa, action.payload],
+      };
+    case "aset/update":
+      return {
+        ...state,
+        dokumenAsetDesa: state.dokumenAsetDesa.map((item, i) =>
+          i === action.index ? action.payload : item
+        ),
+      };
+    case "aset/remove":
+      return {
+        ...state,
+        dokumenAsetDesa: state.dokumenAsetDesa.filter((_, i) => i !== action.index),
+      };
+
     case "perdes/add":
       return {
         ...state,
@@ -169,12 +273,20 @@ export default function LegalitasTab() {
   // Modal flags
   const [openAD, setOpenAD] = useState(false);
   const [openART, setOpenART] = useState(false);
+  const [openAHU, setOpenAHU] = useState(false);
+  const [openNPWP, setOpenNPWP] = useState(false);
+  const [openNIB, setOpenNIB] = useState(false);
+  const [openAset, setOpenAset] = useState(false);
   const [openPerdes, setOpenPerdes] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
 
   // Edit state for each table
   const [editingADIndex, setEditingADIndex] = useState<number | null>(null);
   const [editingARTIndex, setEditingARTIndex] = useState<number | null>(null);
+  const [editingAHUIndex, setEditingAHUIndex] = useState<number | null>(null);
+  const [editingNPWPIndex, setEditingNPWPIndex] = useState<number | null>(null);
+  const [editingNIBIndex, setEditingNIBIndex] = useState<number | null>(null);
+  const [editingAsetIndex, setEditingAsetIndex] = useState<number | null>(null);
   const [editingPerdesIndex, setEditingPerdesIndex] = useState<number | null>(null);
 
   // Download confirmation and preview modals
@@ -256,6 +368,66 @@ export default function LegalitasTab() {
     }
     setOpenART(false);
   }, [editingARTIndex]);
+
+  const saveAHU = useCallback((d: LegalDokumenPayload) => {
+    const payload: DokumenSimple = {
+      tahun: d.tahun,
+      nomor: d.nomor ?? "",
+      file: d.file,
+    };
+    if (editingAHUIndex !== null) {
+      dispatch({ type: "ahu/update", index: editingAHUIndex, payload });
+      setEditingAHUIndex(null);
+    } else {
+      dispatch({ type: "ahu/add", payload });
+    }
+    setOpenAHU(false);
+  }, [editingAHUIndex]);
+
+  const saveNPWP = useCallback((d: LegalDokumenPayload) => {
+    const payload: DokumenSimple = {
+      tahun: d.tahun,
+      nomor: d.nomor ?? "",
+      file: d.file,
+    };
+    if (editingNPWPIndex !== null) {
+      dispatch({ type: "npwp/update", index: editingNPWPIndex, payload });
+      setEditingNPWPIndex(null);
+    } else {
+      dispatch({ type: "npwp/add", payload });
+    }
+    setOpenNPWP(false);
+  }, [editingNPWPIndex]);
+
+  const saveNIB = useCallback((d: LegalDokumenPayload) => {
+    const payload: DokumenSimple = {
+      tahun: d.tahun,
+      nomor: d.nomor ?? "",
+      file: d.file,
+    };
+    if (editingNIBIndex !== null) {
+      dispatch({ type: "nib/update", index: editingNIBIndex, payload });
+      setEditingNIBIndex(null);
+    } else {
+      dispatch({ type: "nib/add", payload });
+    }
+    setOpenNIB(false);
+  }, [editingNIBIndex]);
+
+  const saveAset = useCallback((d: LegalDokumenPayload) => {
+    const payload: DokumenAsetDesa = {
+      tahun: d.tahun,
+      nama: d.nama,
+      file: d.file,
+    };
+    if (editingAsetIndex !== null) {
+      dispatch({ type: "aset/update", index: editingAsetIndex, payload });
+      setEditingAsetIndex(null);
+    } else {
+      dispatch({ type: "aset/add", payload });
+    }
+    setOpenAset(false);
+  }, [editingAsetIndex]);
 
   const savePerdes = useCallback((d: LegalDokumenPayload) => {
     const payload: DokumenPerdes = {
@@ -530,6 +702,246 @@ export default function LegalitasTab() {
           </div>
         </DataCard>
 
+        {/* AHU Badan Hukum */}
+        <DataCard
+          label="AHU Badan Hukum"
+          buttonLabel="Tambah Dokumen"
+          onButtonClick={() => {
+            setEditingAHUIndex(null);
+            setOpenAHU(true);
+          }}
+        >
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
+                  <th className="border-b border-neutral-200 px-3 py-3">Tahun</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">Nomor</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">File</th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.ahuBadanHukum.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-sm text-neutral-400">
+                      Tidak ada data yang ditambahkan
+                    </td>
+                  </tr>
+                ) : (
+                  state.ahuBadanHukum.map((d, i) => (
+                    <tr key={`${d.nomor}-${d.tahun}-${i}`} className="text-sm text-neutral-800">
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.tahun}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.nomor}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.file}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        <div className="flex justify-end gap-1">
+                          {d.file && d.file !== "-" && (
+                            <>
+                              <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" onClick={() => handlePreviewFile(d.file)} title="Preview">
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button type="button" onClick={() => handleDownloadFile(d.file)} className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50" title="Unduh">
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
+                          )}
+                          <button type="button" onClick={() => { setEditingAHUIndex(i); setOpenAHU(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
+                            <Pencil className="h-4 w-4 text-blue-600" />
+                          </button>
+                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => dispatch({ type: "ahu/remove", index: i })} title="Hapus">
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DataCard>
+
+        {/* NPWP */}
+        <DataCard
+          label="NPWP"
+          buttonLabel="Tambah Dokumen"
+          onButtonClick={() => {
+            setEditingNPWPIndex(null);
+            setOpenNPWP(true);
+          }}
+        >
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
+                  <th className="border-b border-neutral-200 px-3 py-3">Tahun</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">Nomor</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">File</th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.npwp.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-sm text-neutral-400">
+                      Tidak ada data yang ditambahkan
+                    </td>
+                  </tr>
+                ) : (
+                  state.npwp.map((d, i) => (
+                    <tr key={`${d.nomor}-${d.tahun}-${i}`} className="text-sm text-neutral-800">
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.tahun}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.nomor}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.file}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        <div className="flex justify-end gap-1">
+                          {d.file && d.file !== "-" && (
+                            <>
+                              <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" onClick={() => handlePreviewFile(d.file)} title="Preview">
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button type="button" onClick={() => handleDownloadFile(d.file)} className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50" title="Unduh">
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
+                          )}
+                          <button type="button" onClick={() => { setEditingNPWPIndex(i); setOpenNPWP(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
+                            <Pencil className="h-4 w-4 text-blue-600" />
+                          </button>
+                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => dispatch({ type: "npwp/remove", index: i })} title="Hapus">
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DataCard>
+
+        {/* NIB */}
+        <DataCard
+          label="NIB (Nomor Izin Berusaha)"
+          buttonLabel="Tambah Dokumen"
+          onButtonClick={() => {
+            setEditingNIBIndex(null);
+            setOpenNIB(true);
+          }}
+        >
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
+                  <th className="border-b border-neutral-200 px-3 py-3">Tahun</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">Nomor</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">File</th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.nib.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-sm text-neutral-400">
+                      Tidak ada data yang ditambahkan
+                    </td>
+                  </tr>
+                ) : (
+                  state.nib.map((d, i) => (
+                    <tr key={`${d.nomor}-${d.tahun}-${i}`} className="text-sm text-neutral-800">
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.tahun}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.nomor}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.file}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        <div className="flex justify-end gap-1">
+                          {d.file && d.file !== "-" && (
+                            <>
+                              <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" onClick={() => handlePreviewFile(d.file)} title="Preview">
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button type="button" onClick={() => handleDownloadFile(d.file)} className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50" title="Unduh">
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
+                          )}
+                          <button type="button" onClick={() => { setEditingNIBIndex(i); setOpenNIB(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
+                            <Pencil className="h-4 w-4 text-blue-600" />
+                          </button>
+                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => dispatch({ type: "nib/remove", index: i })} title="Hapus">
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DataCard>
+
+        {/* Dokumen Pemanfaatan Aset Desa */}
+        <DataCard
+          label="Dokumen Pemanfaatan Aset Desa"
+          buttonLabel="Tambah Dokumen"
+          onButtonClick={() => {
+            setEditingAsetIndex(null);
+            setOpenAset(true);
+          }}
+        >
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
+                  <th className="border-b border-neutral-200 px-3 py-3">Tahun</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">Nama</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">File</th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.dokumenAsetDesa.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-3 py-4 text-center text-sm text-neutral-400">
+                      Tidak ada data yang ditambahkan
+                    </td>
+                  </tr>
+                ) : (
+                  state.dokumenAsetDesa.map((d, i) => (
+                    <tr key={`${d.nama}-${d.tahun}-${i}`} className="text-sm text-neutral-800">
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.tahun}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.nama}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">{d.file}</td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        <div className="flex justify-end gap-1">
+                          {d.file && d.file !== "-" && (
+                            <>
+                              <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" onClick={() => handlePreviewFile(d.file)} title="Preview">
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button type="button" onClick={() => handleDownloadFile(d.file)} className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50" title="Unduh">
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
+                          )}
+                          <button type="button" onClick={() => { setEditingAsetIndex(i); setOpenAset(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
+                            <Pencil className="h-4 w-4 text-blue-600" />
+                          </button>
+                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => dispatch({ type: "aset/remove", index: i })} title="Hapus">
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DataCard>
+
         {/* Perdes Penyertaan Modal */}
         <DataCard
           label="Perdes Penyertaan Modal BUM Desa"
@@ -658,6 +1070,31 @@ export default function LegalitasTab() {
                   ))
                 )}
               </tbody>
+              {state.perdesPenyertaanModal.length > 0 && (
+                <tfoot>
+                  <tr className="bg-neutral-50 text-sm font-semibold text-neutral-800">
+                    <td
+                      colSpan={3}
+                      className="border-t-2 border-neutral-300 px-3 py-3 text-right"
+                    >
+                      Total Modal
+                    </td>
+                    <td className="border-t-2 border-neutral-300 px-3 py-3">
+                      {formatCurrency(
+                        state.perdesPenyertaanModal.reduce(
+                          (sum, d) =>
+                            sum + (typeof d.nominal === "number" ? d.nominal : 0),
+                          0
+                        )
+                      )}
+                    </td>
+                    <td
+                      colSpan={2}
+                      className="border-t-2 border-neutral-300"
+                    ></td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         </DataCard>
@@ -740,6 +1177,100 @@ export default function LegalitasTab() {
             : undefined
         }
       />
+
+      {/* AHU Badan Hukum Modal */}
+      <AddAnggaranModal
+        open={openAHU}
+        onClose={() => {
+          setOpenAHU(false);
+          setEditingAHUIndex(null);
+        }}
+        onSave={saveAHU}
+        title="Tambah AHU Badan Hukum"
+        showNomor
+        namaLabel="Nama Dokumen"
+        nomorLabel="Nomor AHU"
+        initialData={
+          editingAHUIndex !== null
+            ? {
+                tahun: state.ahuBadanHukum[editingAHUIndex].tahun,
+                nama: "AHU Badan Hukum",
+                nomor: state.ahuBadanHukum[editingAHUIndex].nomor,
+                file: state.ahuBadanHukum[editingAHUIndex].file,
+              }
+            : undefined
+        }
+      />
+
+      {/* NPWP Modal */}
+      <AddAnggaranModal
+        open={openNPWP}
+        onClose={() => {
+          setOpenNPWP(false);
+          setEditingNPWPIndex(null);
+        }}
+        onSave={saveNPWP}
+        title="Tambah NPWP"
+        showNomor
+        namaLabel="Nama Dokumen"
+        nomorLabel="Nomor NPWP"
+        initialData={
+          editingNPWPIndex !== null
+            ? {
+                tahun: state.npwp[editingNPWPIndex].tahun,
+                nama: "NPWP",
+                nomor: state.npwp[editingNPWPIndex].nomor,
+                file: state.npwp[editingNPWPIndex].file,
+              }
+            : undefined
+        }
+      />
+
+      {/* NIB Modal */}
+      <AddAnggaranModal
+        open={openNIB}
+        onClose={() => {
+          setOpenNIB(false);
+          setEditingNIBIndex(null);
+        }}
+        onSave={saveNIB}
+        title="Tambah NIB (Nomor Izin Berusaha)"
+        showNomor
+        namaLabel="Nama Dokumen"
+        nomorLabel="Nomor Izin Berusaha"
+        initialData={
+          editingNIBIndex !== null
+            ? {
+                tahun: state.nib[editingNIBIndex].tahun,
+                nama: "NIB",
+                nomor: state.nib[editingNIBIndex].nomor,
+                file: state.nib[editingNIBIndex].file,
+              }
+            : undefined
+        }
+      />
+
+      {/* Dokumen Aset Desa Modal */}
+      <AddAnggaranModal
+        open={openAset}
+        onClose={() => {
+          setOpenAset(false);
+          setEditingAsetIndex(null);
+        }}
+        onSave={saveAset}
+        title="Tambah Dokumen Pemanfaatan Aset Desa"
+        namaLabel="Nama Dokumen"
+        initialData={
+          editingAsetIndex !== null
+            ? {
+                tahun: state.dokumenAsetDesa[editingAsetIndex].tahun,
+                nama: state.dokumenAsetDesa[editingAsetIndex].nama,
+                file: state.dokumenAsetDesa[editingAsetIndex].file,
+              }
+            : undefined
+        }
+      />
+
       <SaveResultModal
         open={savedOpen}
         onClose={() => setSavedOpen(false)}

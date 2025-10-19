@@ -164,10 +164,14 @@ export default function ProfileTab() {
   const [touched, setTouched] = useState(false);
 
   // Edit rekening state
-  const [editingRekeningIndex, setEditingRekeningIndex] = useState<number | null>(null);
+  const [editingRekeningIndex, setEditingRekeningIndex] = useState<
+    number | null
+  >(null);
 
   // Edit dokumen state
-  const [editingDokumenIndex, setEditingDokumenIndex] = useState<number | null>(null);
+  const [editingDokumenIndex, setEditingDokumenIndex] = useState<number | null>(
+    null
+  );
 
   // Download confirmation modal state
   const [downloadConfirmOpen, setDownloadConfirmOpen] = useState(false);
@@ -242,7 +246,10 @@ export default function ProfileTab() {
     }
 
     // Validate SK file if status is "terbit"
-    if (state.form.statusBadanHukum === "terbit" && !state.form.skBadanHukumFile) {
+    if (
+      state.form.statusBadanHukum === "terbit" &&
+      !state.form.skBadanHukumFile
+    ) {
       setShowWarning(true);
       return;
     }
@@ -255,25 +262,39 @@ export default function ProfileTab() {
   }, [state]);
 
   // modal save helpers
-  const saveRekening = useCallback((rek: RekeningBUM) => {
-    if (editingRekeningIndex !== null) {
-      dispatch({ type: "rekening/update", index: editingRekeningIndex, payload: rek });
-      setEditingRekeningIndex(null);
-    } else {
-      dispatch({ type: "rekening/add", payload: rek });
-    }
-    setOpenRekening(false);
-  }, [editingRekeningIndex]);
+  const saveRekening = useCallback(
+    (rek: RekeningBUM) => {
+      if (editingRekeningIndex !== null) {
+        dispatch({
+          type: "rekening/update",
+          index: editingRekeningIndex,
+          payload: rek,
+        });
+        setEditingRekeningIndex(null);
+      } else {
+        dispatch({ type: "rekening/add", payload: rek });
+      }
+      setOpenRekening(false);
+    },
+    [editingRekeningIndex]
+  );
 
-  const saveDokumen = useCallback((doc: DokumenPerdes) => {
-    if (editingDokumenIndex !== null) {
-      dispatch({ type: "dokumen/update", index: editingDokumenIndex, payload: doc });
-      setEditingDokumenIndex(null);
-    } else {
-      dispatch({ type: "dokumen/add", payload: doc });
-    }
-    setOpenDokumen(false);
-  }, [editingDokumenIndex]);
+  const saveDokumen = useCallback(
+    (doc: DokumenPerdes) => {
+      if (editingDokumenIndex !== null) {
+        dispatch({
+          type: "dokumen/update",
+          index: editingDokumenIndex,
+          payload: doc,
+        });
+        setEditingDokumenIndex(null);
+      } else {
+        dispatch({ type: "dokumen/add", payload: doc });
+      }
+      setOpenDokumen(false);
+    },
+    [editingDokumenIndex]
+  );
 
   return (
     <div className="grid grid-cols-12 gap-6 p-6">
@@ -314,11 +335,13 @@ export default function ProfileTab() {
               <span>Surat Keterangan Badan Hukum</span>
             </label>
 
-            <p className={`text-xs ${
-              touched && !state.form.skBadanHukumFile
-                ? "text-red-600"
-                : "text-neutral-400"
-            }`}>
+            <p
+              className={`text-xs ${
+                touched && !state.form.skBadanHukumFile
+                  ? "text-red-600"
+                  : "text-neutral-400"
+              }`}
+            >
               {state.form.skBadanHukumFile
                 ? `Terpilih: ${state.form.skBadanHukumFile}`
                 : "Belum ada data terunggah"}
@@ -496,8 +519,11 @@ export default function ProfileTab() {
               state.form.jumlahPengurus !== "" &&
               state.form.pengurusL !== "" &&
               state.form.pengurusP !== "" &&
-              Number(state.form.jumlahPengurus) !== Number(state.form.pengurusL) + Number(state.form.pengurusP)
-                ? `Harus sama dengan total L + P (${Number(state.form.pengurusL) + Number(state.form.pengurusP)})`
+              Number(state.form.jumlahPengurus) !==
+                Number(state.form.pengurusL) + Number(state.form.pengurusP)
+                ? `Harus sama dengan total L + P (${
+                    Number(state.form.pengurusL) + Number(state.form.pengurusP)
+                  })`
                 : undefined
             }
             touched={touched}
@@ -719,7 +745,8 @@ export default function ProfileTab() {
               Unduh Dokumen
             </h3>
             <p className="mb-6 text-sm text-neutral-600">
-              Apakah Anda yakin ingin mengunduh file: <strong>{fileToDownload}</strong>?
+              Apakah Anda yakin ingin mengunduh file:{" "}
+              <strong>{fileToDownload}</strong>?
             </p>
             <div className="flex justify-end gap-3">
               <button

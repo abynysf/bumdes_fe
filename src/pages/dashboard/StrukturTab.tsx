@@ -24,29 +24,41 @@ type PengurusBUM = {
   namaPengurus: string;
   pekerjaan: string;
   nomorTelepon: string;
+  gaji: string;
+  keterangan: string;
 };
 
-type KepalaUnit = {
-  namaUnit: string;
-  namaKepalaUnit: string;
-  pekerjaan: string;
-  nomorTelepon: string;
+type SKPengawas = {
+  periode?: string;
+  tahun?: string;
+  nomor: string;
+  file: string;
 };
 
-type PengawasBUM = {
-  namaPengawas: string;
-  pekerjaan: string;
-  nomorTelepon: string;
+type SKDirektur = {
+  periode?: string;
+  tahun?: string;
+  nomor: string;
+  file: string;
 };
 
-type SKBUMDesa = {
-  periode: string;
+type SKPegawai = {
+  periode?: string;
+  tahun?: string;
+  nomor: string;
+  file: string;
+};
+
+type SKPengurus = {
+  periode?: string;
+  tahun?: string;
   nomor: string;
   file: string;
 };
 
 type BeritaAcaraBUM = {
-  periode: string;
+  periode?: string;
+  tahun?: string;
   nomor: string;
   file: string;
 };
@@ -54,9 +66,10 @@ type BeritaAcaraBUM = {
 type StukturState = {
   periode: Periode;
   pengurus: PengurusBUM[];
-  kepalaUnit: KepalaUnit[];
-  pengawas: PengawasBUM[];
-  suratKeputusan: SKBUMDesa[];
+  skPengawas: SKPengawas[];
+  skDirektur: SKDirektur[];
+  skPegawai: SKPegawai[];
+  skPengurus: SKPengurus[];
   beritaAcara: BeritaAcaraBUM[];
 };
 
@@ -72,9 +85,10 @@ const INITIAL: StukturState = {
     akhirPeriode: "",
   },
   pengurus: [],
-  kepalaUnit: [],
-  pengawas: [],
-  suratKeputusan: [],
+  skPengawas: [],
+  skDirektur: [],
+  skPegawai: [],
+  skPengurus: [],
   beritaAcara: [],
 };
 
@@ -109,15 +123,18 @@ type Action =
   | { type: "pengurus/add"; payload: PengurusBUM }
   | { type: "pengurus/update"; index: number; payload: PengurusBUM }
   | { type: "pengurus/remove"; index: number }
-  | { type: "kepalaUnit/add"; payload: KepalaUnit }
-  | { type: "kepalaUnit/update"; index: number; payload: KepalaUnit }
-  | { type: "kepalaUnit/remove"; index: number }
-  | { type: "pengawas/add"; payload: PengawasBUM }
-  | { type: "pengawas/update"; index: number; payload: PengawasBUM }
-  | { type: "pengawas/remove"; index: number }
-  | { type: "sk/add"; payload: SKBUMDesa }
-  | { type: "sk/update"; index: number; payload: SKBUMDesa }
-  | { type: "sk/remove"; index: number }
+  | { type: "skPengawas/add"; payload: SKPengawas }
+  | { type: "skPengawas/update"; index: number; payload: SKPengawas }
+  | { type: "skPengawas/remove"; index: number }
+  | { type: "skDirektur/add"; payload: SKDirektur }
+  | { type: "skDirektur/update"; index: number; payload: SKDirektur }
+  | { type: "skDirektur/remove"; index: number }
+  | { type: "skPegawai/add"; payload: SKPegawai }
+  | { type: "skPegawai/update"; index: number; payload: SKPegawai }
+  | { type: "skPegawai/remove"; index: number }
+  | { type: "skPengurus/add"; payload: SKPengurus }
+  | { type: "skPengurus/update"; index: number; payload: SKPengurus }
+  | { type: "skPengurus/remove"; index: number }
   | { type: "ba/add"; payload: BeritaAcaraBUM }
   | { type: "ba/update"; index: number; payload: BeritaAcaraBUM }
   | { type: "ba/remove"; index: number }
@@ -146,54 +163,64 @@ function dataReducer(state: StukturState, action: Action): StukturState {
         pengurus: state.pengurus.filter((_, i) => i !== action.index),
       };
 
-    case "kepalaUnit/add":
-      return { ...state, kepalaUnit: [...state.kepalaUnit, action.payload] };
-    case "kepalaUnit/update":
+    case "skPengawas/add":
+      return { ...state, skPengawas: [...state.skPengawas, action.payload] };
+    case "skPengawas/update":
       return {
         ...state,
-        kepalaUnit: state.kepalaUnit.map((k, i) =>
-          i === action.index ? action.payload : k
-        ),
-      };
-    case "kepalaUnit/remove":
-      return {
-        ...state,
-        kepalaUnit: state.kepalaUnit.filter((_, i) => i !== action.index),
-      };
-
-    case "pengawas/add":
-      return { ...state, pengawas: [...state.pengawas, action.payload] };
-    case "pengawas/update":
-      return {
-        ...state,
-        pengawas: state.pengawas.map((p, i) =>
-          i === action.index ? action.payload : p
-        ),
-      };
-    case "pengawas/remove":
-      return {
-        ...state,
-        pengawas: state.pengawas.filter((_, i) => i !== action.index),
-      };
-
-    case "sk/add":
-      return {
-        ...state,
-        suratKeputusan: [...state.suratKeputusan, action.payload],
-      };
-    case "sk/update":
-      return {
-        ...state,
-        suratKeputusan: state.suratKeputusan.map((s, i) =>
+        skPengawas: state.skPengawas.map((s, i) =>
           i === action.index ? action.payload : s
         ),
       };
-    case "sk/remove":
+    case "skPengawas/remove":
       return {
         ...state,
-        suratKeputusan: state.suratKeputusan.filter(
-          (_, i) => i !== action.index
+        skPengawas: state.skPengawas.filter((_, i) => i !== action.index),
+      };
+
+    case "skDirektur/add":
+      return { ...state, skDirektur: [...state.skDirektur, action.payload] };
+    case "skDirektur/update":
+      return {
+        ...state,
+        skDirektur: state.skDirektur.map((s, i) =>
+          i === action.index ? action.payload : s
         ),
+      };
+    case "skDirektur/remove":
+      return {
+        ...state,
+        skDirektur: state.skDirektur.filter((_, i) => i !== action.index),
+      };
+
+    case "skPegawai/add":
+      return { ...state, skPegawai: [...state.skPegawai, action.payload] };
+    case "skPegawai/update":
+      return {
+        ...state,
+        skPegawai: state.skPegawai.map((s, i) =>
+          i === action.index ? action.payload : s
+        ),
+      };
+    case "skPegawai/remove":
+      return {
+        ...state,
+        skPegawai: state.skPegawai.filter((_, i) => i !== action.index),
+      };
+
+    case "skPengurus/add":
+      return { ...state, skPengurus: [...state.skPengurus, action.payload] };
+    case "skPengurus/update":
+      return {
+        ...state,
+        skPengurus: state.skPengurus.map((s, i) =>
+          i === action.index ? action.payload : s
+        ),
+      };
+    case "skPengurus/remove":
+      return {
+        ...state,
+        skPengurus: state.skPengurus.filter((_, i) => i !== action.index),
       };
 
     case "ba/add":
@@ -230,9 +257,10 @@ export default function StrukturTab() {
 
   // Modal flags
   const [openPengurus, setOpenPengurus] = useState(false);
-  const [openKepalaUnit, setOpenKepalaUnit] = useState(false);
-  const [openPengawas, setOpenPengawas] = useState(false);
-  const [openSK, setOpenSK] = useState(false);
+  const [openSKPengawas, setOpenSKPengawas] = useState(false);
+  const [openSKDirektur, setOpenSKDirektur] = useState(false);
+  const [openSKPegawai, setOpenSKPegawai] = useState(false);
+  const [openSKPengurus, setOpenSKPengurus] = useState(false);
   const [openBA, setOpenBA] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
@@ -241,10 +269,21 @@ export default function StrukturTab() {
   const [touched, setTouched] = useState(false);
 
   // Edit state for each table
-  const [editingPengurusIndex, setEditingPengurusIndex] = useState<number | null>(null);
-  const [editingKepalaUnitIndex, setEditingKepalaUnitIndex] = useState<number | null>(null);
-  const [editingPengawasIndex, setEditingPengawasIndex] = useState<number | null>(null);
-  const [editingSKIndex, setEditingSKIndex] = useState<number | null>(null);
+  const [editingPengurusIndex, setEditingPengurusIndex] = useState<
+    number | null
+  >(null);
+  const [editingSKPengawasIndex, setEditingSKPengawasIndex] = useState<
+    number | null
+  >(null);
+  const [editingSKDirekturIndex, setEditingSKDirekturIndex] = useState<
+    number | null
+  >(null);
+  const [editingSKPegawaiIndex, setEditingSKPegawaiIndex] = useState<
+    number | null
+  >(null);
+  const [editingSKPengurusIndex, setEditingSKPengurusIndex] = useState<
+    number | null
+  >(null);
   const [editingBAIndex, setEditingBAIndex] = useState<number | null>(null);
 
   // Download confirmation and preview modals
@@ -315,75 +354,116 @@ export default function StrukturTab() {
     nama: string;
     pekerjaan: string;
     nomorTelepon: string;
+    gaji?: string;
+    keterangan?: string;
   };
 
   // helper untuk menerima hasil dari modal
-  const savePengurus = useCallback((p: PersonDataPayload) => {
-    const payload: PengurusBUM = {
-      jabatan: p.jabatan ?? "",
-      namaPengurus: p.nama,
-      pekerjaan: p.pekerjaan,
-      nomorTelepon: p.nomorTelepon,
-    };
-    if (editingPengurusIndex !== null) {
-      dispatch({ type: "pengurus/update", index: editingPengurusIndex, payload });
-      setEditingPengurusIndex(null);
-    } else {
-      dispatch({ type: "pengurus/add", payload });
-    }
-    setOpenPengurus(false);
-  }, [editingPengurusIndex]);
+  const savePengurus = useCallback(
+    (p: PersonDataPayload) => {
+      const payload: PengurusBUM = {
+        jabatan: p.jabatan ?? "",
+        namaPengurus: p.nama,
+        pekerjaan: p.pekerjaan,
+        nomorTelepon: p.nomorTelepon,
+        gaji: p.gaji ?? "",
+        keterangan: p.keterangan ?? "",
+      };
+      if (editingPengurusIndex !== null) {
+        dispatch({
+          type: "pengurus/update",
+          index: editingPengurusIndex,
+          payload,
+        });
+        setEditingPengurusIndex(null);
+      } else {
+        dispatch({ type: "pengurus/add", payload });
+      }
+      setOpenPengurus(false);
+    },
+    [editingPengurusIndex]
+  );
 
-  const saveKepalaUnit = useCallback((p: PersonDataPayload) => {
-    const payload: KepalaUnit = {
-      namaUnit: p.unit ?? "",
-      namaKepalaUnit: p.nama,
-      pekerjaan: p.pekerjaan,
-      nomorTelepon: p.nomorTelepon,
-    };
-    if (editingKepalaUnitIndex !== null) {
-      dispatch({ type: "kepalaUnit/update", index: editingKepalaUnitIndex, payload });
-      setEditingKepalaUnitIndex(null);
-    } else {
-      dispatch({ type: "kepalaUnit/add", payload });
-    }
-    setOpenKepalaUnit(false);
-  }, [editingKepalaUnitIndex]);
+  const saveSKPengawas = useCallback(
+    (d: SKPengawas) => {
+      if (editingSKPengawasIndex !== null) {
+        dispatch({
+          type: "skPengawas/update",
+          index: editingSKPengawasIndex,
+          payload: d,
+        });
+        setEditingSKPengawasIndex(null);
+      } else {
+        dispatch({ type: "skPengawas/add", payload: d });
+      }
+      setOpenSKPengawas(false);
+    },
+    [editingSKPengawasIndex]
+  );
 
-  const savePengawas = useCallback((p: PersonDataPayload) => {
-    const payload: PengawasBUM = {
-      namaPengawas: p.nama,
-      pekerjaan: p.pekerjaan,
-      nomorTelepon: p.nomorTelepon,
-    };
-    if (editingPengawasIndex !== null) {
-      dispatch({ type: "pengawas/update", index: editingPengawasIndex, payload });
-      setEditingPengawasIndex(null);
-    } else {
-      dispatch({ type: "pengawas/add", payload });
-    }
-    setOpenPengawas(false);
-  }, [editingPengawasIndex]);
+  const saveSKDirektur = useCallback(
+    (d: SKDirektur) => {
+      if (editingSKDirekturIndex !== null) {
+        dispatch({
+          type: "skDirektur/update",
+          index: editingSKDirekturIndex,
+          payload: d,
+        });
+        setEditingSKDirekturIndex(null);
+      } else {
+        dispatch({ type: "skDirektur/add", payload: d });
+      }
+      setOpenSKDirektur(false);
+    },
+    [editingSKDirekturIndex]
+  );
 
-  const saveSK = useCallback((d: SKBUMDesa) => {
-    if (editingSKIndex !== null) {
-      dispatch({ type: "sk/update", index: editingSKIndex, payload: d });
-      setEditingSKIndex(null);
-    } else {
-      dispatch({ type: "sk/add", payload: d });
-    }
-    setOpenSK(false);
-  }, [editingSKIndex]);
+  const saveSKPegawai = useCallback(
+    (d: SKPegawai) => {
+      if (editingSKPegawaiIndex !== null) {
+        dispatch({
+          type: "skPegawai/update",
+          index: editingSKPegawaiIndex,
+          payload: d,
+        });
+        setEditingSKPegawaiIndex(null);
+      } else {
+        dispatch({ type: "skPegawai/add", payload: d });
+      }
+      setOpenSKPegawai(false);
+    },
+    [editingSKPegawaiIndex]
+  );
 
-  const saveBA = useCallback((d: BeritaAcaraBUM) => {
-    if (editingBAIndex !== null) {
-      dispatch({ type: "ba/update", index: editingBAIndex, payload: d });
-      setEditingBAIndex(null);
-    } else {
-      dispatch({ type: "ba/add", payload: d });
-    }
-    setOpenBA(false);
-  }, [editingBAIndex]);
+  const saveSKPengurus = useCallback(
+    (d: SKPengurus) => {
+      if (editingSKPengurusIndex !== null) {
+        dispatch({
+          type: "skPengurus/update",
+          index: editingSKPengurusIndex,
+          payload: d,
+        });
+        setEditingSKPengurusIndex(null);
+      } else {
+        dispatch({ type: "skPengurus/add", payload: d });
+      }
+      setOpenSKPengurus(false);
+    },
+    [editingSKPengurusIndex]
+  );
+
+  const saveBA = useCallback(
+    (d: BeritaAcaraBUM) => {
+      if (editingBAIndex !== null) {
+        dispatch({ type: "ba/update", index: editingBAIndex, payload: d });
+        setEditingBAIndex(null);
+      } else {
+        dispatch({ type: "ba/add", payload: d });
+      }
+      setOpenBA(false);
+    },
+    [editingBAIndex]
+  );
 
   return (
     <div className="grid grid-cols-12 gap-6 p-6">
@@ -456,6 +536,12 @@ export default function StrukturTab() {
                   <th className="border-b border-neutral-200 px-3 py-3">
                     Nomor Telepon
                   </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Gaji
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Keterangan
+                  </th>
                   <th className="border-b border-neutral-200 px-3 py-3 text-right">
                     Aksi
                   </th>
@@ -465,7 +551,7 @@ export default function StrukturTab() {
                 {state.pengurus.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={7}
                       className="px-3 py-4 text-center text-sm text-neutral-400"
                     >
                       Tidak ada data yang ditambahkan
@@ -488,6 +574,12 @@ export default function StrukturTab() {
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         {p.nomorTelepon}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {p.gaji}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {p.keterangan || "-"}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2 text-right">
                         <div className="flex items-center justify-end gap-1">
@@ -524,12 +616,13 @@ export default function StrukturTab() {
           </div>
         </DataCard>
 
+        {/* Document sections */}
         <DataCard
-          label="Kepala Unit BUM Desa"
-          buttonLabel="Tambah Data"
+          label="Surat Keputusan Pengawas"
+          buttonLabel="Tambah Dokumen"
           onButtonClick={() => {
-            setEditingKepalaUnitIndex(null);
-            setOpenKepalaUnit(true);
+            setEditingSKPengawasIndex(null);
+            setOpenSKPengawas(true);
           }}
         >
           <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
@@ -537,16 +630,13 @@ export default function StrukturTab() {
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
                   <th className="border-b border-neutral-200 px-3 py-3">
-                    Unit
+                    Periode
                   </th>
                   <th className="border-b border-neutral-200 px-3 py-3">
-                    Nama
+                    Nomor
                   </th>
                   <th className="border-b border-neutral-200 px-3 py-3">
-                    Pekerjaan
-                  </th>
-                  <th className="border-b border-neutral-200 px-3 py-3">
-                    Nomor Telepon
+                    Nama File
                   </th>
                   <th className="border-b border-neutral-200 px-3 py-3 text-right">
                     Aksi
@@ -554,44 +644,60 @@ export default function StrukturTab() {
                 </tr>
               </thead>
               <tbody>
-                {state.kepalaUnit.length === 0 ? (
+                {state.skPengawas.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={4}
                       className="px-3 py-4 text-center text-sm text-neutral-400"
                     >
                       Tidak ada data yang ditambahkan
                     </td>
                   </tr>
                 ) : (
-                  state.kepalaUnit.map((p, i) => (
+                  state.skPengawas.map((d, i) => (
                     <tr
-                      key={`${p.namaUnit}-${p.namaKepalaUnit}-${i}`}
+                      key={`${d.nomor}-${i}`}
                       className="text-sm text-neutral-800"
                     >
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {p.namaUnit}
+                        {d.periode || d.tahun || "-"}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {p.namaKepalaUnit}
+                        {d.nomor}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {p.pekerjaan}
+                        {d.file}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {p.nomorTelepon}
-                      </td>
-                      <td className="border-b border-neutral-200 px-3 py-2 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex justify-end gap-1">
+                          {d.file && d.file !== "-" && (
+                            <>
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                onClick={() => handlePreviewFile(d.file)}
+                                title="Preview"
+                              >
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadFile(d.file)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                title="Unduh"
+                              >
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
+                          )}
                           <button
                             type="button"
                             onClick={() => {
-                              setEditingKepalaUnitIndex(i);
-                              setOpenKepalaUnit(true);
+                              setEditingSKPengawasIndex(i);
+                              setOpenSKPengawas(true);
                             }}
                             className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
                             title="Edit"
-                            aria-label="Edit kepala unit"
                           >
                             <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
@@ -599,10 +705,9 @@ export default function StrukturTab() {
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
                             onClick={() =>
-                              dispatch({ type: "kepalaUnit/remove", index: i })
+                              dispatch({ type: "skPengawas/remove", index: i })
                             }
                             title="Hapus"
-                            aria-label="Hapus kepala unit"
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
@@ -617,26 +722,25 @@ export default function StrukturTab() {
         </DataCard>
 
         <DataCard
-          label="Pengawas BUM Desa"
-          buttonLabel="Tambah Data"
+          label="Surat Keputusan Direktur BUM Desa"
+          buttonLabel="Tambah Dokumen"
           onButtonClick={() => {
-            setEditingPengawasIndex(null);
-            setOpenPengawas(true);
+            setEditingSKDirekturIndex(null);
+            setOpenSKDirektur(true);
           }}
         >
           <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
             <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
-                  <th className="border-b border-neutral-200 px-3 py-3">No</th>
                   <th className="border-b border-neutral-200 px-3 py-3">
-                    Nama
+                    Periode
                   </th>
                   <th className="border-b border-neutral-200 px-3 py-3">
-                    Pekerjaan
+                    Nomor
                   </th>
                   <th className="border-b border-neutral-200 px-3 py-3">
-                    Nomor Telepon
+                    Nama File
                   </th>
                   <th className="border-b border-neutral-200 px-3 py-3 text-right">
                     Aksi
@@ -644,44 +748,60 @@ export default function StrukturTab() {
                 </tr>
               </thead>
               <tbody>
-                {state.pengawas.length === 0 ? (
+                {state.skDirektur.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={4}
                       className="px-3 py-4 text-center text-sm text-neutral-400"
                     >
                       Tidak ada data yang ditambahkan
                     </td>
                   </tr>
                 ) : (
-                  state.pengawas.map((p, i) => (
+                  state.skDirektur.map((d, i) => (
                     <tr
-                      key={`${p.namaPengawas}-${p.pekerjaan}-${i}`}
+                      key={`${d.nomor}-${i}`}
                       className="text-sm text-neutral-800"
                     >
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {i + 1}
+                        {d.periode || d.tahun || "-"}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {p.namaPengawas}
+                        {d.nomor}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {p.pekerjaan}
+                        {d.file}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {p.nomorTelepon}
-                      </td>
-                      <td className="border-b border-neutral-200 px-3 py-2 text-right">
-                        <div className="flex items-center justify-end gap-1">
+                        <div className="flex justify-end gap-1">
+                          {d.file && d.file !== "-" && (
+                            <>
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                onClick={() => handlePreviewFile(d.file)}
+                                title="Preview"
+                              >
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadFile(d.file)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                title="Unduh"
+                              >
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
+                          )}
                           <button
                             type="button"
                             onClick={() => {
-                              setEditingPengawasIndex(i);
-                              setOpenPengawas(true);
+                              setEditingSKDirekturIndex(i);
+                              setOpenSKDirektur(true);
                             }}
                             className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
                             title="Edit"
-                            aria-label="Edit pengawas"
                           >
                             <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
@@ -689,10 +809,9 @@ export default function StrukturTab() {
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
                             onClick={() =>
-                              dispatch({ type: "pengawas/remove", index: i })
+                              dispatch({ type: "skDirektur/remove", index: i })
                             }
                             title="Hapus"
-                            aria-label="Hapus pengawas"
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
@@ -706,258 +825,320 @@ export default function StrukturTab() {
           </div>
         </DataCard>
 
-        {/* Double card */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          <DataCard
-            label="Surat Keputusan BUM Desa"
-            buttonLabel="Tambah Data"
-            note={
-              state.suratKeputusan.length > 0
-                ? "Periode kepengerusan telah diubah. Harap masukkan data terbaru!"
-                : undefined
-            }
-            className="flex-1"
-            onButtonClick={() => {
-              setEditingSKIndex(null);
-              setOpenSK(true);
-            }}
-          >
-            <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
-              <table className="min-w-full w-full border-separate border-spacing-0">
-                <thead>
-                  <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
-                    <th className="border-b border-neutral-200 px-3 py-3">
-                      Periode
-                    </th>
-                    <th className="border-b border-neutral-200 px-3 py-3">
-                      Nomor
-                    </th>
-                    <th className="border-b border-neutral-200 px-3 py-3">
-                      File
-                    </th>
-                    <th className="border-b border-neutral-200 px-3 py-3 text-right">
-                      Aksi
-                    </th>
+        <DataCard
+          label="SK Pegawai"
+          buttonLabel="Tambah Dokumen"
+          onButtonClick={() => {
+            setEditingSKPegawaiIndex(null);
+            setOpenSKPegawai(true);
+          }}
+        >
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Periode
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nomor
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nama File
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.skPegawai.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-3 py-4 text-center text-sm text-neutral-400"
+                    >
+                      Tidak ada data yang ditambahkan
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {state.suratKeputusan.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-3 py-4 text-center text-sm text-neutral-400"
-                      >
-                        Tidak ada data yang ditambahkan
+                ) : (
+                  state.skPegawai.map((d, i) => (
+                    <tr
+                      key={`${d.nomor}-${i}`}
+                      className="text-sm text-neutral-800"
+                    >
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.periode || d.tahun || "-"}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.nomor}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.file}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        <div className="flex justify-end gap-1">
+                          {d.file && d.file !== "-" && (
+                            <>
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                onClick={() => handlePreviewFile(d.file)}
+                                title="Preview"
+                              >
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadFile(d.file)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                title="Unduh"
+                              >
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingSKPegawaiIndex(i);
+                              setOpenSKPegawai(true);
+                            }}
+                            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4 text-blue-600" />
+                          </button>
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
+                            onClick={() =>
+                              dispatch({ type: "skPegawai/remove", index: i })
+                            }
+                            title="Hapus"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  ) : (
-                    state.suratKeputusan.map((d, i) => (
-                      <tr
-                        key={`${d.nomor}-${i}`}
-                        className="text-sm text-neutral-800"
-                      >
-                        <td className="border-b border-neutral-200 px-3 py-2">
-                          {d.periode}
-                        </td>
-                        <td className="border-b border-neutral-200 px-3 py-2">
-                          {d.nomor}
-                        </td>
-                        <td className="border-b border-neutral-200 px-3 py-2">
-                          {isUrl(d.file) ? (
-                            <a
-                              href={d.file}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:underline"
-                            >
-                              {d.file}
-                            </a>
-                          ) : (
-                            d.file
-                          )}
-                        </td>
-                        <td className="border-b border-neutral-200 px-3 py-2">
-                          <div className="flex justify-end gap-1">
-                            {d.file && d.file !== "-" && (
-                              <>
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                                  onClick={() => handlePreviewFile(d.file)}
-                                  title="Preview"
-                                  aria-label="Preview file"
-                                >
-                                  <Eye className="h-4 w-4 text-blue-600" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDownloadFile(d.file)}
-                                  className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
-                                  title="Unduh"
-                                  aria-label="Unduh dokumen"
-                                >
-                                  <Download className="h-4 w-4 text-emerald-600" />
-                                </button>
-                              </>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingSKIndex(i);
-                                setOpenSK(true);
-                              }}
-                              className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                              title="Edit"
-                              aria-label="Edit dokumen"
-                            >
-                              <Pencil className="h-4 w-4 text-blue-600" />
-                            </button>
-                            <button
-                              type="button"
-                              className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                              onClick={() =>
-                                dispatch({ type: "sk/remove", index: i })
-                              }
-                              title="Hapus"
-                              aria-label="Hapus dokumen"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </DataCard>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DataCard>
 
-          <DataCard
-            label="Berita Acara Serah Terima Pengurus BUM Desa"
-            buttonLabel="Tambah Data"
-            note={
-              state.beritaAcara.length > 0
-                ? "Periode kepengerusan telah diubah. Harap masukkan data terbaru!"
-                : undefined
-            }
-            className="flex-1"
-            onButtonClick={() => {
-              setEditingBAIndex(null);
-              setOpenBA(true);
-            }}
-          >
-            <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
-              <table className="min-w-full w-full border-separate border-spacing-0">
-                <thead>
-                  <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
-                    <th className="border-b border-neutral-200 px-3 py-3">
-                      Periode
-                    </th>
-                    <th className="border-b border-neutral-200 px-3 py-3">
-                      Nomor
-                    </th>
-                    <th className="border-b border-neutral-200 px-3 py-3">
-                      File
-                    </th>
-                    <th className="border-b border-neutral-200 px-3 py-3 text-right">
-                      Aksi
-                    </th>
+        <DataCard
+          label="Surat Keputusan Pengurus BUM Desa"
+          buttonLabel="Tambah Dokumen"
+          note="Surat Keputusan Pengurus BUM Desa hanya untuk sebelum tahun 2021"
+          onButtonClick={() => {
+            setEditingSKPengurusIndex(null);
+            setOpenSKPengurus(true);
+          }}
+        >
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Tahun
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nomor
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nama File
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.skPengurus.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-3 py-4 text-center text-sm text-neutral-400"
+                    >
+                      Tidak ada data yang ditambahkan
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {state.beritaAcara.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-3 py-4 text-center text-sm text-neutral-400"
-                      >
-                        Tidak ada data yang ditambahkan
+                ) : (
+                  state.skPengurus.map((d, i) => (
+                    <tr
+                      key={`${d.nomor}-${i}`}
+                      className="text-sm text-neutral-800"
+                    >
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.tahun || d.periode || "-"}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.nomor}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.file}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        <div className="flex justify-end gap-1">
+                          {d.file && d.file !== "-" && (
+                            <>
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                onClick={() => handlePreviewFile(d.file)}
+                                title="Preview"
+                              >
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadFile(d.file)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                title="Unduh"
+                              >
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingSKPengurusIndex(i);
+                              setOpenSKPengurus(true);
+                            }}
+                            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4 text-blue-600" />
+                          </button>
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
+                            onClick={() =>
+                              dispatch({ type: "skPengurus/remove", index: i })
+                            }
+                            title="Hapus"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  ) : (
-                    state.beritaAcara.map((d, i) => (
-                      <tr
-                        key={`${d.nomor}-${i}`}
-                        className="text-sm text-neutral-800"
-                      >
-                        <td className="border-b border-neutral-200 px-3 py-2">
-                          {d.periode}
-                        </td>
-                        <td className="border-b border-neutral-200 px-3 py-2">
-                          {d.nomor}
-                        </td>
-                        <td className="border-b border-neutral-200 px-3 py-2">
-                          {isUrl(d.file) ? (
-                            <a
-                              href={d.file}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="hover:underline"
-                            >
-                              {d.file}
-                            </a>
-                          ) : (
-                            d.file
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DataCard>
+
+        <DataCard
+          label="Berita Acara Serah Terima Pengurus BUM Desa"
+          buttonLabel="Tambah Dokumen"
+          onButtonClick={() => {
+            setEditingBAIndex(null);
+            setOpenBA(true);
+          }}
+        >
+          <div className="overflow-x-auto border border-t-neutral-200 rounded-lg">
+            <table className="min-w-full w-full border-separate border-spacing-0">
+              <thead>
+                <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Tahun
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nomor
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nama File
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.beritaAcara.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-3 py-4 text-center text-sm text-neutral-400"
+                    >
+                      Tidak ada data yang ditambahkan
+                    </td>
+                  </tr>
+                ) : (
+                  state.beritaAcara.map((d, i) => (
+                    <tr
+                      key={`${d.nomor}-${i}`}
+                      className="text-sm text-neutral-800"
+                    >
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.tahun || d.periode || "-"}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.nomor}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.file}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        <div className="flex justify-end gap-1">
+                          {d.file && d.file !== "-" && (
+                            <>
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                onClick={() => handlePreviewFile(d.file)}
+                                title="Preview"
+                              >
+                                <Eye className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadFile(d.file)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                title="Unduh"
+                              >
+                                <Download className="h-4 w-4 text-emerald-600" />
+                              </button>
+                            </>
                           )}
-                        </td>
-                        <td className="border-b border-neutral-200 px-3 py-2">
-                          <div className="flex justify-end gap-1">
-                            {d.file && d.file !== "-" && (
-                              <>
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                                  onClick={() => handlePreviewFile(d.file)}
-                                  title="Preview"
-                                  aria-label="Preview file"
-                                >
-                                  <Eye className="h-4 w-4 text-blue-600" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDownloadFile(d.file)}
-                                  className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
-                                  title="Unduh"
-                                  aria-label="Unduh dokumen"
-                                >
-                                  <Download className="h-4 w-4 text-emerald-600" />
-                                </button>
-                              </>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingBAIndex(i);
-                                setOpenBA(true);
-                              }}
-                              className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                              title="Edit"
-                              aria-label="Edit dokumen"
-                            >
-                              <Pencil className="h-4 w-4 text-blue-600" />
-                            </button>
-                            <button
-                              type="button"
-                              className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                              onClick={() =>
-                                dispatch({ type: "ba/remove", index: i })
-                              }
-                              title="Hapus"
-                              aria-label="Hapus dokumen"
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </DataCard>
-        </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingBAIndex(i);
+                              setOpenBA(true);
+                            }}
+                            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                            title="Edit"
+                            aria-label="Edit dokumen"
+                          >
+                            <Pencil className="h-4 w-4 text-blue-600" />
+                          </button>
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
+                            onClick={() =>
+                              dispatch({ type: "ba/remove", index: i })
+                            }
+                            title="Hapus"
+                            aria-label="Hapus dokumen"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </DataCard>
       </div>
 
       {/* Save */}
@@ -974,6 +1155,8 @@ export default function StrukturTab() {
         }}
         onSave={savePengurus}
         ShowJabatan
+        ShowGaji
+        ShowKeterangan
         title="Data Pengurus BUM Desa"
         initialData={
           editingPengurusIndex !== null
@@ -982,64 +1165,78 @@ export default function StrukturTab() {
                 nama: state.pengurus[editingPengurusIndex].namaPengurus,
                 pekerjaan: state.pengurus[editingPengurusIndex].pekerjaan,
                 nomorTelepon: state.pengurus[editingPengurusIndex].nomorTelepon,
-              }
-            : undefined
-        }
-      />
-      <AddPengurusBUMModal
-        open={openKepalaUnit}
-        onClose={() => {
-          setOpenKepalaUnit(false);
-          setEditingKepalaUnitIndex(null);
-        }}
-        onSave={saveKepalaUnit}
-        ShowUnit
-        title="Data Kepala Unit BUM Desa"
-        initialData={
-          editingKepalaUnitIndex !== null
-            ? {
-                unit: state.kepalaUnit[editingKepalaUnitIndex].namaUnit,
-                nama: state.kepalaUnit[editingKepalaUnitIndex].namaKepalaUnit,
-                pekerjaan: state.kepalaUnit[editingKepalaUnitIndex].pekerjaan,
-                nomorTelepon: state.kepalaUnit[editingKepalaUnitIndex].nomorTelepon,
-              }
-            : undefined
-        }
-      />
-      <AddPengurusBUMModal
-        open={openPengawas}
-        onClose={() => {
-          setOpenPengawas(false);
-          setEditingPengawasIndex(null);
-        }}
-        onSave={savePengawas}
-        title="Data Pengawas BUM Desa"
-        initialData={
-          editingPengawasIndex !== null
-            ? {
-                nama: state.pengawas[editingPengawasIndex].namaPengawas,
-                pekerjaan: state.pengawas[editingPengawasIndex].pekerjaan,
-                nomorTelepon: state.pengawas[editingPengawasIndex].nomorTelepon,
+                gaji: state.pengurus[editingPengurusIndex].gaji,
+                keterangan: state.pengurus[editingPengurusIndex].keterangan,
               }
             : undefined
         }
       />
 
       <AddStrukturDokumenModal
-        open={openSK}
+        open={openSKPengawas}
         onClose={() => {
-          setOpenSK(false);
-          setEditingSKIndex(null);
+          setOpenSKPengawas(false);
+          setEditingSKPengawasIndex(null);
         }}
-        onSave={saveSK}
-        keterangan="Surat Keterangan Keputusan BUM Desa"
-        title="Tambah SK Pengurus BUM Desa"
+        onSave={saveSKPengawas}
+        keterangan="Surat Keputusan Pengawas"
+        title="Tambah Dokumen SK Pengawas"
         initialData={
-          editingSKIndex !== null
-            ? state.suratKeputusan[editingSKIndex]
+          editingSKPengawasIndex !== null
+            ? state.skPengawas[editingSKPengawasIndex]
             : undefined
         }
       />
+
+      <AddStrukturDokumenModal
+        open={openSKDirektur}
+        onClose={() => {
+          setOpenSKDirektur(false);
+          setEditingSKDirekturIndex(null);
+        }}
+        onSave={saveSKDirektur}
+        keterangan="Surat Keputusan Direktur BUM Desa"
+        title="Tambah Dokumen SK Direktur"
+        initialData={
+          editingSKDirekturIndex !== null
+            ? state.skDirektur[editingSKDirekturIndex]
+            : undefined
+        }
+      />
+
+      <AddStrukturDokumenModal
+        open={openSKPegawai}
+        onClose={() => {
+          setOpenSKPegawai(false);
+          setEditingSKPegawaiIndex(null);
+        }}
+        onSave={saveSKPegawai}
+        keterangan="SK Pegawai"
+        title="Tambah Dokumen SK Pegawai"
+        initialData={
+          editingSKPegawaiIndex !== null
+            ? state.skPegawai[editingSKPegawaiIndex]
+            : undefined
+        }
+      />
+
+      <AddStrukturDokumenModal
+        open={openSKPengurus}
+        onClose={() => {
+          setOpenSKPengurus(false);
+          setEditingSKPengurusIndex(null);
+        }}
+        onSave={saveSKPengurus}
+        keterangan="Surat Keputusan Pengurus BUM Desa"
+        title="Tambah Dokumen SK Pengurus"
+        useTahun={true}
+        initialData={
+          editingSKPengurusIndex !== null
+            ? state.skPengurus[editingSKPengurusIndex]
+            : undefined
+        }
+      />
+
       <AddStrukturDokumenModal
         open={openBA}
         onClose={() => {
@@ -1049,6 +1246,7 @@ export default function StrukturTab() {
         onSave={saveBA}
         title="Berita Acara Serah Terima Pengurus BUM Desa"
         keterangan="Berita Acara Serah Terima Pengurus BUM Desa"
+        useTahun={true}
         initialData={
           editingBAIndex !== null
             ? state.beritaAcara[editingBAIndex]

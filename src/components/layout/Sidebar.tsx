@@ -24,7 +24,7 @@ const menuItems: Item[] = [
   { label: "Aset BUM Desa", to: "/assets", icon: Building2 },
   { label: "Unit Usaha BUM Desa", to: "/business-units", icon: Briefcase },
   { label: "Laporan BUM Desa", to: "/financial-reports", icon: FileText },
-  { label: "Pengaturan", to: "/settings", icon: Settings },
+  { label: "Lain-lain", to: "/others", icon: Settings },
 ];
 
 const itemClass = (active: boolean) =>
@@ -75,7 +75,8 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           {/* Close button for mobile */}
           <button
             onClick={onClose}
-            className="lg:hidden rounded-md p-2 text-neutral-600 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            type="button"
+            className="lg:hidden rounded-md border-2 border-emerald-600 p-2 text-emerald-600 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors"
             aria-label="Tutup menu"
           >
             <X className="h-5 w-5" />
@@ -91,7 +92,9 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               placeholder="Cari menu..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 pr-9 text-sm placeholder:text-neutral-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className={`w-full rounded-md border border-neutral-300 bg-white px-3 py-2 pr-9 text-sm placeholder:text-neutral-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 ${
+                searchQuery ? "text-neutral-700" : "text-neutral-400"
+              }`}
               aria-label="Cari menu"
             />
           </label>
@@ -122,7 +125,9 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               );
             })
           ) : (
-            <p className="px-3 py-2 text-sm text-neutral-400">Tidak ada hasil</p>
+            <p className="px-3 py-2 text-sm text-neutral-400">
+              Tidak ada hasil
+            </p>
           )}
         </div>
       </nav>
@@ -171,7 +176,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       <aside
         className={clsx(
           "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r bg-white shadow-xl transition-transform duration-300",
-          "lg:relative lg:translate-x-0",
+          "lg:relative lg:translate-x-0 lg:z-auto",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

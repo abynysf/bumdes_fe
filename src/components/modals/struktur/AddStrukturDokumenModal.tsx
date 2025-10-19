@@ -6,7 +6,8 @@ import YearPicker from "../../ui/YearPicker";
 import UploadDokumenModal from "../UploadDokumenModal";
 
 type DocumentData = {
-  periode: string;
+  periode?: string;
+  tahun?: string;
   nomor: string;
   file: string;
 };
@@ -18,6 +19,7 @@ type Props = {
   title?: string;
   keterangan?: string;
   initialData?: DocumentData;
+  useTahun?: boolean; // If true, uses single "Tahun" field instead of "Periode" range
 };
 
 export default function AddStrukturDokumenModal({
@@ -27,9 +29,11 @@ export default function AddStrukturDokumenModal({
   title,
   keterangan,
   initialData,
+  useTahun = false,
 }: Props) {
   const [awal, setAwal] = useState<number | "">("");
   const [akhir, setAkhir] = useState<number | "">("");
+  const [tahun, setTahun] = useState<number | "">("");
   const [nomor, setNomor] = useState("");
   const [file, setFile] = useState<string>("");
   const [touched, setTouched] = useState(false);
@@ -40,10 +44,15 @@ export default function AddStrukturDokumenModal({
   // Populate fields when editing
   useEffect(() => {
     if (open && initialData) {
-      // Parse periode string "2020–2025" back to numbers
-      const [awalStr, akhirStr] = initialData.periode.split("–");
-      setAwal(awalStr ? parseInt(awalStr, 10) : "");
-      setAkhir(akhirStr ? parseInt(akhirStr, 10) : "");
+      if (useTahun && initialData.tahun) {
+        // Single year mode
+        setTahun(parseInt(initialData.tahun, 10) || "");
+      } else if (initialData.periode) {
+        // Parse periode string "2020–2025" back to numbers
+        const [awalStr, akhirStr] = initialData.periode.split("–");
+        setAwal(awalStr ? parseInt(awalStr, 10) : "");
+        setAkhir(akhirStr ? parseInt(akhirStr, 10) : "");
+      }
       setNomor(initialData.nomor === "-" ? "" : initialData.nomor);
       setFile(initialData.file === "-" ? "" : initialData.file);
       setTouched(false);
@@ -51,33 +60,46 @@ export default function AddStrukturDokumenModal({
       // Reset form when opening for new entry
       setAwal("");
       setAkhir("");
+      setTahun("");
       setNomor("");
       setFile("");
       setTouched(false);
     }
-  }, [open, initialData]);
+  }, [open, initialData, useTahun]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setTouched(true); // Show validation errors
 
-    // Only validate required fields (years)
-    if (awal === "" || akhir === "") {
-      return; // Validation failed - errors will show
-    }
+    if (useTahun) {
+      // Single year mode validation
+      if (tahun === "") {
+        return; // Validation failed
+      }
 
-    // Check year range
-    if (akhir < awal) {
-      return; // Error already shown via YearPicker error prop
-    }
+      onSave({
+        tahun: tahun.toString(),
+        nomor: nomor.trim() || "-",
+        file: file || "-"
+      });
+    } else {
+      // Periode range mode validation
+      if (awal === "" || akhir === "") {
+        return; // Validation failed - errors will show
+      }
 
-    const periode = `${awal}–${akhir}`;
-    // Use "-" for empty optional fields
-    onSave({
-      periode,
-      nomor: nomor.trim() || "-",
-      file: file || "-"
-    });
+      // Check year range
+      if (akhir < awal) {
+        return; // Error already shown via YearPicker error prop
+      }
+
+      const periode = `${awal}–${akhir}`;
+      onSave({
+        periode,
+        nomor: nomor.trim() || "-",
+        file: file || "-"
+      });
+    }
   }
 
   return (
@@ -88,38 +110,54 @@ export default function AddStrukturDokumenModal({
         title={title ?? "Tambah Data Dokumen"}
       >
         <form className="space-y-4" onSubmit={handleSubmit} noValidate>
-          {/* Periode (awal-akhir) */}
-          <div>
-            <div className="flex gap-2">
+          {/* Year field(s) - single year or range */}
+          {useTahun ? (
+            <div>
               <YearPicker
-                label="Awal Periode"
+                label="Tahun"
                 placeholder="Pilih tahun"
                 required
-                value={awal === "" ? undefined : awal}
-                onChange={(y) => setAwal(y ?? "")}
+                value={tahun === "" ? undefined : tahun}
+                onChange={(y) => setTahun(y ?? "")}
                 touched={touched}
               />
-              <YearPicker
-                label="Akhir Periode"
-                placeholder="Pilih tahun"
-                required
-                value={akhir === "" ? undefined : akhir}
-                onChange={(y) => setAkhir(y ?? "")}
-                touched={touched}
-                error={
-                  akhir !== "" && awal !== "" && akhir < awal
-                    ? "Harus lebih besar dari awal periode"
-                    : undefined
-                }
-              />
+              <p className="mt-1 text-xs text-neutral-400">
+                Tahun tersimpan: <span className="font-medium">{tahun || "Belum dipilih"}</span>
+              </p>
             </div>
-            <p className="mt-1 text-xs text-neutral-400">
-              Periode tersimpan sebagai:{" "}
-              <span className="font-medium">
-                {awal && akhir ? `${awal}–${akhir}` : "Belum lengkap"}
-              </span>
-            </p>
-          </div>
+          ) : (
+            <div>
+              <div className="flex gap-2">
+                <YearPicker
+                  label="Awal Periode"
+                  placeholder="Pilih tahun"
+                  required
+                  value={awal === "" ? undefined : awal}
+                  onChange={(y) => setAwal(y ?? "")}
+                  touched={touched}
+                />
+                <YearPicker
+                  label="Akhir Periode"
+                  placeholder="Pilih tahun"
+                  required
+                  value={akhir === "" ? undefined : akhir}
+                  onChange={(y) => setAkhir(y ?? "")}
+                  touched={touched}
+                  error={
+                    akhir !== "" && awal !== "" && akhir < awal
+                      ? "Harus lebih besar dari awal periode"
+                      : undefined
+                  }
+                />
+              </div>
+              <p className="mt-1 text-xs text-neutral-400">
+                Periode tersimpan sebagai:{" "}
+                <span className="font-medium">
+                  {awal && akhir ? `${awal}–${akhir}` : "Belum lengkap"}
+                </span>
+              </p>
+            </div>
+          )}
 
           {/* Nomor Dokumen */}
           <div>

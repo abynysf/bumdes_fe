@@ -55,7 +55,14 @@ const routeConfigs: Record<string, RouteConfig> = {
     breadcrumb: {
       parent: { label: "Laporan BUM Desa", to: "/financial-reports" },
       current: "Daftar Laporan",
-    }, 
+    },
+  },
+  "/others": {
+    title: "Lain-lain",
+    breadcrumb: {
+      parent: { label: "Lain-lain", to: "/others" },
+      current: "Daftar Lain-lain",
+    },
   },
 };
 
@@ -89,7 +96,10 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
 
           {/* dynamic breadcrumb - only show for dashboard routes */}
           {config.breadcrumb && (
-            <nav className="mt-2 sm:mt-3 text-xs sm:text-sm" aria-label="Breadcrumb">
+            <nav
+              className="mt-2 sm:mt-3 text-xs sm:text-sm"
+              aria-label="Breadcrumb"
+            >
               <ol className="flex gap-2 items-center">
                 <li>
                   <Link
@@ -99,8 +109,13 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
                     {config.breadcrumb.parent.label}
                   </Link>
                 </li>
-                <li className="text-neutral-300" aria-hidden="true">/</li>
-                <li className="text-neutral-600 font-medium truncate" aria-current="page">
+                <li className="text-neutral-300" aria-hidden="true">
+                  /
+                </li>
+                <li
+                  className="text-neutral-600 font-medium truncate"
+                  aria-current="page"
+                >
                   {config.breadcrumb.current}
                 </li>
               </ol>
