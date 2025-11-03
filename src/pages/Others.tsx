@@ -14,13 +14,13 @@ export default function Others() {
   };
 
   return (
-    <>
-      <Sidebar isOpen={sidebarOpen} onClose={handleSidebarClose} />
-      <div className="flex min-h-screen flex-col lg:ml-64">
-        <Topbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="flex-1 bg-neutral-50 p-6">
-          <div className="mx-auto max-w-7xl">
-            <div className="rounded-lg bg-white p-8 shadow-sm">
+    <div className="flex h-screen">
+      <Sidebar isOpen={sidebarOpen || !isMobile} onClose={handleSidebarClose} />
+      <div className="w-full overflow-y-auto bg-white">
+        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <main className="min-h-[calc(100vh-64px)]">
+          <section className="p-6">
+            <div className="rounded-lg bg-neutral-50 p-8 shadow-sm">
               <h1 className="mb-4 text-2xl font-bold text-neutral-800">
                 Lain-lain
               </h1>
@@ -29,9 +29,9 @@ export default function Others() {
                 ditambahkan di masa mendatang.
               </p>
             </div>
-          </div>
+          </section>
         </main>
       </div>
-    </>
+    </div>
   );
 }
