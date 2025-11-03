@@ -78,10 +78,12 @@ const Dropdown = forwardRef<HTMLButtonElement, Props>(function Dropdown(
           >
             {selectedLabel}
           </span>
-          <ChevronDown className={clsx(
-            "h-4 w-4",
-            errorMessage ? "text-red-500" : "text-neutral-500"
-          )} />
+          <ChevronDown
+            className={clsx(
+              "h-4 w-4",
+              errorMessage ? "text-red-500" : "text-neutral-500"
+            )}
+          />
         </button>
 
         {open && (
@@ -98,7 +100,7 @@ const Dropdown = forwardRef<HTMLButtonElement, Props>(function Dropdown(
                 {label}
               </div>
             )}
-            <div className="py-1">
+            <div className="py-1 overflow-y-scroll max-h-120">
               {options.map((opt) => (
                 <button
                   key={opt.value}

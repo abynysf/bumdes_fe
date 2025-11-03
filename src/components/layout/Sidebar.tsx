@@ -5,7 +5,7 @@ import {
   Building2,
   Briefcase,
   FileText,
-  Settings,
+  Ellipsis,
   LogOut,
   X,
 } from "lucide-react";
@@ -23,8 +23,8 @@ const menuItems: Item[] = [
   { label: "Profil BUM Desa", to: "/dashboard/", icon: IdCard },
   { label: "Aset BUM Desa", to: "/assets", icon: Building2 },
   { label: "Unit Usaha BUM Desa", to: "/business-units", icon: Briefcase },
-  { label: "Laporan BUM Desa", to: "/financial-reports", icon: FileText },
-  { label: "Lain-lain", to: "/others", icon: Settings },
+  { label: "Laporan BUM Desa", to: "/laporan", icon: FileText },
+  { label: "Lain-lain", to: "/others", icon: Ellipsis },
 ];
 
 const itemClass = (active: boolean) =>

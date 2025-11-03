@@ -4,6 +4,7 @@ import DataCard from "../../components/ui/DataCard";
 import { Download, Eye, Pencil, Trash2 } from "lucide-react";
 import AddAnggaranModal from "../../components/modals/legalitas/AddLegalDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
 
 /**
  * ===========================
@@ -295,6 +296,22 @@ export default function LegalitasTab() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [fileToPreview, setFileToPreview] = useState<string>("");
 
+  // Confirm delete states
+  const [confirmDeleteADOpen, setConfirmDeleteADOpen] = useState(false);
+  const [deleteADIndex, setDeleteADIndex] = useState<number | null>(null);
+  const [confirmDeleteARTOpen, setConfirmDeleteARTOpen] = useState(false);
+  const [deleteARTIndex, setDeleteARTIndex] = useState<number | null>(null);
+  const [confirmDeleteAHUOpen, setConfirmDeleteAHUOpen] = useState(false);
+  const [deleteAHUIndex, setDeleteAHUIndex] = useState<number | null>(null);
+  const [confirmDeleteNPWPOpen, setConfirmDeleteNPWPOpen] = useState(false);
+  const [deleteNPWPIndex, setDeleteNPWPIndex] = useState<number | null>(null);
+  const [confirmDeleteNIBOpen, setConfirmDeleteNIBOpen] = useState(false);
+  const [deleteNIBIndex, setDeleteNIBIndex] = useState<number | null>(null);
+  const [confirmDeleteAsetOpen, setConfirmDeleteAsetOpen] = useState(false);
+  const [deleteAsetIndex, setDeleteAsetIndex] = useState<number | null>(null);
+  const [confirmDeletePerdesOpen, setConfirmDeletePerdesOpen] = useState(false);
+  const [deletePerdesIndex, setDeletePerdesIndex] = useState<number | null>(null);
+
   const downloadFile = useCallback((file: string) => {
     if (isUrl(file)) {
       window.open(file, "_blank", "noopener,noreferrer");
@@ -446,6 +463,91 @@ export default function LegalitasTab() {
     setOpenPerdes(false);
   }, [editingPerdesIndex]);
 
+  // Delete handlers
+  const handleDeleteAD = useCallback((index: number) => {
+    setDeleteADIndex(index);
+    setConfirmDeleteADOpen(true);
+  }, []);
+
+  const confirmDeleteAD = useCallback(() => {
+    if (deleteADIndex !== null) {
+      dispatch({ type: "ad/remove", index: deleteADIndex });
+      setDeleteADIndex(null);
+    }
+  }, [deleteADIndex]);
+
+  const handleDeleteART = useCallback((index: number) => {
+    setDeleteARTIndex(index);
+    setConfirmDeleteARTOpen(true);
+  }, []);
+
+  const confirmDeleteART = useCallback(() => {
+    if (deleteARTIndex !== null) {
+      dispatch({ type: "art/remove", index: deleteARTIndex });
+      setDeleteARTIndex(null);
+    }
+  }, [deleteARTIndex]);
+
+  const handleDeleteAHU = useCallback((index: number) => {
+    setDeleteAHUIndex(index);
+    setConfirmDeleteAHUOpen(true);
+  }, []);
+
+  const confirmDeleteAHU = useCallback(() => {
+    if (deleteAHUIndex !== null) {
+      dispatch({ type: "ahu/remove", index: deleteAHUIndex });
+      setDeleteAHUIndex(null);
+    }
+  }, [deleteAHUIndex]);
+
+  const handleDeleteNPWP = useCallback((index: number) => {
+    setDeleteNPWPIndex(index);
+    setConfirmDeleteNPWPOpen(true);
+  }, []);
+
+  const confirmDeleteNPWP = useCallback(() => {
+    if (deleteNPWPIndex !== null) {
+      dispatch({ type: "npwp/remove", index: deleteNPWPIndex });
+      setDeleteNPWPIndex(null);
+    }
+  }, [deleteNPWPIndex]);
+
+  const handleDeleteNIB = useCallback((index: number) => {
+    setDeleteNIBIndex(index);
+    setConfirmDeleteNIBOpen(true);
+  }, []);
+
+  const confirmDeleteNIB = useCallback(() => {
+    if (deleteNIBIndex !== null) {
+      dispatch({ type: "nib/remove", index: deleteNIBIndex });
+      setDeleteNIBIndex(null);
+    }
+  }, [deleteNIBIndex]);
+
+  const handleDeleteAset = useCallback((index: number) => {
+    setDeleteAsetIndex(index);
+    setConfirmDeleteAsetOpen(true);
+  }, []);
+
+  const confirmDeleteAset = useCallback(() => {
+    if (deleteAsetIndex !== null) {
+      dispatch({ type: "aset/remove", index: deleteAsetIndex });
+      setDeleteAsetIndex(null);
+    }
+  }, [deleteAsetIndex]);
+
+  const handleDeletePerdes = useCallback((index: number) => {
+    setDeletePerdesIndex(index);
+    setConfirmDeletePerdesOpen(true);
+  }, []);
+
+  const confirmDeletePerdes = useCallback(() => {
+    if (deletePerdesIndex !== null) {
+      dispatch({ type: "perdes/remove", index: deletePerdesIndex });
+      setDeletePerdesIndex(null);
+    }
+  }, [deletePerdesIndex]);
+
   return (
     <div className="grid grid-cols-12 gap-6 p-6">
       {/* Right column */}
@@ -558,9 +660,7 @@ export default function LegalitasTab() {
                           <button
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                            onClick={() =>
-                              dispatch({ type: "ad/remove", index: i })
-                            }
+                            onClick={() => handleDeleteAD(i)}
                             title="Hapus"
                             aria-label="Hapus dokumen"
                           >
@@ -684,9 +784,7 @@ export default function LegalitasTab() {
                           <button
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                            onClick={() =>
-                              dispatch({ type: "art/remove", index: i })
-                            }
+                            onClick={() => handleDeleteART(i)}
                             title="Hapus"
                             aria-label="Hapus dokumen"
                           >
@@ -749,7 +847,7 @@ export default function LegalitasTab() {
                           <button type="button" onClick={() => { setEditingAHUIndex(i); setOpenAHU(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
                             <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
-                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => dispatch({ type: "ahu/remove", index: i })} title="Hapus">
+                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => handleDeleteAHU(i)} title="Hapus">
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
@@ -809,7 +907,7 @@ export default function LegalitasTab() {
                           <button type="button" onClick={() => { setEditingNPWPIndex(i); setOpenNPWP(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
                             <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
-                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => dispatch({ type: "npwp/remove", index: i })} title="Hapus">
+                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => handleDeleteNPWP(i)} title="Hapus">
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
@@ -869,7 +967,7 @@ export default function LegalitasTab() {
                           <button type="button" onClick={() => { setEditingNIBIndex(i); setOpenNIB(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
                             <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
-                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => dispatch({ type: "nib/remove", index: i })} title="Hapus">
+                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => handleDeleteNIB(i)} title="Hapus">
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
@@ -929,7 +1027,7 @@ export default function LegalitasTab() {
                           <button type="button" onClick={() => { setEditingAsetIndex(i); setOpenAset(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
                             <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
-                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => dispatch({ type: "aset/remove", index: i })} title="Hapus">
+                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => handleDeleteAset(i)} title="Hapus">
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
@@ -1056,9 +1154,7 @@ export default function LegalitasTab() {
                           <button
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                            onClick={() =>
-                              dispatch({ type: "perdes/remove", index: i })
-                            }
+                            onClick={() => handleDeletePerdes(i)}
                             title="Hapus"
                             aria-label="Hapus dokumen"
                           >
@@ -1276,6 +1372,84 @@ export default function LegalitasTab() {
         onClose={() => setSavedOpen(false)}
         title="Data Struktur Tersimpan"
         autoCloseMs={1500}
+      />
+
+      {/* Confirm Delete Dialogs */}
+      <ConfirmDialog
+        open={confirmDeleteADOpen}
+        onClose={() => setConfirmDeleteADOpen(false)}
+        onConfirm={confirmDeleteAD}
+        title="Hapus Anggaran Dasar"
+        message="Apakah Anda yakin ingin menghapus dokumen Anggaran Dasar ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteARTOpen}
+        onClose={() => setConfirmDeleteARTOpen(false)}
+        onConfirm={confirmDeleteART}
+        title="Hapus Anggaran Rumah Tangga"
+        message="Apakah Anda yakin ingin menghapus dokumen Anggaran Rumah Tangga ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteAHUOpen}
+        onClose={() => setConfirmDeleteAHUOpen(false)}
+        onConfirm={confirmDeleteAHU}
+        title="Hapus AHU Badan Hukum"
+        message="Apakah Anda yakin ingin menghapus dokumen AHU Badan Hukum ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteNPWPOpen}
+        onClose={() => setConfirmDeleteNPWPOpen(false)}
+        onConfirm={confirmDeleteNPWP}
+        title="Hapus NPWP"
+        message="Apakah Anda yakin ingin menghapus dokumen NPWP ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteNIBOpen}
+        onClose={() => setConfirmDeleteNIBOpen(false)}
+        onConfirm={confirmDeleteNIB}
+        title="Hapus NIB"
+        message="Apakah Anda yakin ingin menghapus dokumen NIB ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteAsetOpen}
+        onClose={() => setConfirmDeleteAsetOpen(false)}
+        onConfirm={confirmDeleteAset}
+        title="Hapus Dokumen Aset Desa"
+        message="Apakah Anda yakin ingin menghapus dokumen Aset Desa ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeletePerdesOpen}
+        onClose={() => setConfirmDeletePerdesOpen(false)}
+        onConfirm={confirmDeletePerdes}
+        title="Hapus Perdes Penyertaan Modal"
+        message="Apakah Anda yakin ingin menghapus dokumen Perdes Penyertaan Modal ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
       />
 
       {/* Download Confirmation Modal */}

@@ -1,23 +1,17 @@
 import { useCallback, useReducer, useState } from "react";
-import YearPicker from "../../components/ui/YearPicker";
 import Button from "../../components/ui/Button";
 import DataCard from "../../components/ui/DataCard";
 import { Download, Eye, Pencil, Trash2 } from "lucide-react";
 import AddPengurusBUMModal from "../../components/modals/struktur/AddPengurusBUMModal";
 import AddStrukturDokumenModal from "../../components/modals/struktur/AddStrukturDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
-import WarningModal from "../../components/modals/WarningModal";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
 
 /**
  * ===========================
  * Types
  * ===========================
  */
-
-type Periode = {
-  awalPeriode: number | "";
-  akhirPeriode: number | "";
-};
 
 type PengurusBUM = {
   jabatan: string;
@@ -64,7 +58,6 @@ type BeritaAcaraBUM = {
 };
 
 type StukturState = {
-  periode: Periode;
   pengurus: PengurusBUM[];
   skPengawas: SKPengawas[];
   skDirektur: SKDirektur[];
@@ -80,10 +73,6 @@ type StukturState = {
  */
 
 const INITIAL: StukturState = {
-  periode: {
-    awalPeriode: "",
-    akhirPeriode: "",
-  },
   pengurus: [],
   skPengawas: [],
   skDirektur: [],
@@ -115,11 +104,6 @@ function isUrl(value: string): boolean {
  */
 
 type Action =
-  | {
-      type: "periode/update";
-      key: keyof Periode;
-      value: Periode[keyof Periode];
-    }
   | { type: "pengurus/add"; payload: PengurusBUM }
   | { type: "pengurus/update"; index: number; payload: PengurusBUM }
   | { type: "pengurus/remove"; index: number }
@@ -142,12 +126,6 @@ type Action =
 
 function dataReducer(state: StukturState, action: Action): StukturState {
   switch (action.type) {
-    case "periode/update":
-      return {
-        ...state,
-        periode: { ...state.periode, [action.key]: action.value },
-      };
-
     case "pengurus/add":
       return { ...state, pengurus: [...state.pengurus, action.payload] };
     case "pengurus/update":
@@ -263,10 +241,35 @@ export default function StrukturTab() {
   const [openSKPengurus, setOpenSKPengurus] = useState(false);
   const [openBA, setOpenBA] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
-  const [showWarning, setShowWarning] = useState(false);
 
-  // Track if user attempted to submit (for showing validation errors)
-  const [touched, setTouched] = useState(false);
+  // Confirm delete states
+  const [confirmDeletePengurusOpen, setConfirmDeletePengurusOpen] =
+    useState(false);
+  const [deletePengurusIndex, setDeletePengurusIndex] = useState<number | null>(
+    null
+  );
+  const [confirmDeleteSKPengawasOpen, setConfirmDeleteSKPengawasOpen] =
+    useState(false);
+  const [deleteSKPengawasIndex, setDeleteSKPengawasIndex] = useState<
+    number | null
+  >(null);
+  const [confirmDeleteSKDirekturOpen, setConfirmDeleteSKDirekturOpen] =
+    useState(false);
+  const [deleteSKDirekturIndex, setDeleteSKDirekturIndex] = useState<
+    number | null
+  >(null);
+  const [confirmDeleteSKPegawaiOpen, setConfirmDeleteSKPegawaiOpen] =
+    useState(false);
+  const [deleteSKPegawaiIndex, setDeleteSKPegawaiIndex] = useState<
+    number | null
+  >(null);
+  const [confirmDeleteSKPengurusOpen, setConfirmDeleteSKPengurusOpen] =
+    useState(false);
+  const [deleteSKPengurusIndex, setDeleteSKPengurusIndex] = useState<
+    number | null
+  >(null);
+  const [confirmDeleteBAOpen, setConfirmDeleteBAOpen] = useState(false);
+  const [deleteBAIndex, setDeleteBAIndex] = useState<number | null>(null);
 
   // Edit state for each table
   const [editingPengurusIndex, setEditingPengurusIndex] = useState<
@@ -293,12 +296,6 @@ export default function StrukturTab() {
   const [fileToPreview, setFileToPreview] = useState<string>("");
 
   // Handlers
-  const updateForm = useCallback(
-    (key: keyof Periode, value: Periode[keyof Periode]) =>
-      dispatch({ type: "periode/update", key, value }),
-    []
-  );
-
   const downloadFile = useCallback((file: string) => {
     if (isUrl(file)) {
       window.open(file, "_blank", "noopener,noreferrer");
@@ -326,26 +323,9 @@ export default function StrukturTab() {
   }, []);
 
   const onSave = useCallback(() => {
-    // Mark as touched to show validation errors
-    setTouched(true);
-
-    // Validate required fields: awal and akhir periode
-    if (state.periode.awalPeriode === "" || state.periode.akhirPeriode === "") {
-      setShowWarning(true); // Show warning modal
-      return; // Stop if validation fails
-    }
-
-    // Validate year range: akhir must be >= awal
-    if (state.periode.akhirPeriode < state.periode.awalPeriode) {
-      setShowWarning(true); // Show warning modal
-      return; // Stop if validation fails
-    }
-
     // TODO: ganti dengan API call
     console.log("[SAVE] profil payload:", state);
     setSavedOpen(true);
-    // Reset touched after successful save
-    setTouched(false);
   }, [state]);
 
   type PersonDataPayload = {
@@ -465,52 +445,83 @@ export default function StrukturTab() {
     [editingBAIndex]
   );
 
+  // Delete handlers
+  const handleDeletePengurus = useCallback((index: number) => {
+    setDeletePengurusIndex(index);
+    setConfirmDeletePengurusOpen(true);
+  }, []);
+
+  const confirmDeletePengurus = useCallback(() => {
+    if (deletePengurusIndex !== null) {
+      dispatch({ type: "pengurus/remove", index: deletePengurusIndex });
+      setDeletePengurusIndex(null);
+    }
+  }, [deletePengurusIndex]);
+
+  const handleDeleteSKPengawas = useCallback((index: number) => {
+    setDeleteSKPengawasIndex(index);
+    setConfirmDeleteSKPengawasOpen(true);
+  }, []);
+
+  const confirmDeleteSKPengawas = useCallback(() => {
+    if (deleteSKPengawasIndex !== null) {
+      dispatch({ type: "skPengawas/remove", index: deleteSKPengawasIndex });
+      setDeleteSKPengawasIndex(null);
+    }
+  }, [deleteSKPengawasIndex]);
+
+  const handleDeleteSKDirektur = useCallback((index: number) => {
+    setDeleteSKDirekturIndex(index);
+    setConfirmDeleteSKDirekturOpen(true);
+  }, []);
+
+  const confirmDeleteSKDirektur = useCallback(() => {
+    if (deleteSKDirekturIndex !== null) {
+      dispatch({ type: "skDirektur/remove", index: deleteSKDirekturIndex });
+      setDeleteSKDirekturIndex(null);
+    }
+  }, [deleteSKDirekturIndex]);
+
+  const handleDeleteSKPegawai = useCallback((index: number) => {
+    setDeleteSKPegawaiIndex(index);
+    setConfirmDeleteSKPegawaiOpen(true);
+  }, []);
+
+  const confirmDeleteSKPegawai = useCallback(() => {
+    if (deleteSKPegawaiIndex !== null) {
+      dispatch({ type: "skPegawai/remove", index: deleteSKPegawaiIndex });
+      setDeleteSKPegawaiIndex(null);
+    }
+  }, [deleteSKPegawaiIndex]);
+
+  const handleDeleteSKPengurus = useCallback((index: number) => {
+    setDeleteSKPengurusIndex(index);
+    setConfirmDeleteSKPengurusOpen(true);
+  }, []);
+
+  const confirmDeleteSKPengurus = useCallback(() => {
+    if (deleteSKPengurusIndex !== null) {
+      dispatch({ type: "skPengurus/remove", index: deleteSKPengurusIndex });
+      setDeleteSKPengurusIndex(null);
+    }
+  }, [deleteSKPengurusIndex]);
+
+  const handleDeleteBA = useCallback((index: number) => {
+    setDeleteBAIndex(index);
+    setConfirmDeleteBAOpen(true);
+  }, []);
+
+  const confirmDeleteBA = useCallback(() => {
+    if (deleteBAIndex !== null) {
+      dispatch({ type: "ba/remove", index: deleteBAIndex });
+      setDeleteBAIndex(null);
+    }
+  }, [deleteBAIndex]);
+
   return (
     <div className="grid grid-cols-12 gap-6 p-6">
-      {/* Main form */}
-      <div className="col-span-full lg:col-span-6 space-y-4">
-        <div>
-          <div className="flex gap-2">
-            <YearPicker
-              label="Awal Periode Kepengurusan"
-              required
-              placeholder="Pilih tahun"
-              value={
-                state.periode.awalPeriode === ""
-                  ? undefined
-                  : state.periode.awalPeriode
-              }
-              onChange={(y) => updateForm("awalPeriode", y ?? "")}
-              touched={touched}
-            />
-            <YearPicker
-              label="Akhir Periode Kepengurusan"
-              required
-              placeholder="Pilih tahun"
-              value={
-                state.periode.akhirPeriode === ""
-                  ? undefined
-                  : state.periode.akhirPeriode
-              }
-              onChange={(y) => updateForm("akhirPeriode", y ?? "")}
-              touched={touched}
-              error={
-                state.periode.akhirPeriode !== "" &&
-                state.periode.awalPeriode !== "" &&
-                state.periode.akhirPeriode < state.periode.awalPeriode
-                  ? "Harus lebih besar dari awal periode"
-                  : undefined
-              }
-            />
-          </div>
-          <p className="mt-1 text-xs text-red-500">
-            Perhatian! Mengubah bagian ini dapat mempengaruhi data yang lain
-          </p>
-        </div>
-      </div>
-
-      {/* Right column */}
-      <div className="col-span-full space-y-4 ">
+      {/* Main content */}
+      <div className="col-span-full space-y-4">
         {/* Pengurus */}
         <DataCard
           label="Pengurus BUM Desa"
@@ -598,9 +609,7 @@ export default function StrukturTab() {
                           <button
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                            onClick={() =>
-                              dispatch({ type: "pengurus/remove", index: i })
-                            }
+                            onClick={() => handleDeletePengurus(i)}
                             title="Hapus"
                             aria-label="Hapus pengurus"
                           >
@@ -704,9 +713,7 @@ export default function StrukturTab() {
                           <button
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                            onClick={() =>
-                              dispatch({ type: "skPengawas/remove", index: i })
-                            }
+                            onClick={() => handleDeleteSKPengawas(i)}
                             title="Hapus"
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />
@@ -808,9 +815,7 @@ export default function StrukturTab() {
                           <button
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                            onClick={() =>
-                              dispatch({ type: "skDirektur/remove", index: i })
-                            }
+                            onClick={() => handleDeleteSKDirektur(i)}
                             title="Hapus"
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />
@@ -912,9 +917,7 @@ export default function StrukturTab() {
                           <button
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                            onClick={() =>
-                              dispatch({ type: "skPegawai/remove", index: i })
-                            }
+                            onClick={() => handleDeleteSKPegawai(i)}
                             title="Hapus"
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />
@@ -1017,9 +1020,7 @@ export default function StrukturTab() {
                           <button
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                            onClick={() =>
-                              dispatch({ type: "skPengurus/remove", index: i })
-                            }
+                            onClick={() => handleDeleteSKPengurus(i)}
                             title="Hapus"
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />
@@ -1122,9 +1123,7 @@ export default function StrukturTab() {
                           <button
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                            onClick={() =>
-                              dispatch({ type: "ba/remove", index: i })
-                            }
+                            onClick={() => handleDeleteBA(i)}
                             title="Hapus"
                             aria-label="Hapus dokumen"
                           >
@@ -1260,12 +1259,71 @@ export default function StrukturTab() {
         autoCloseMs={1500}
       />
 
-      <WarningModal
-        open={showWarning}
-        onClose={() => setShowWarning(false)}
-        type="warning"
-        title="Data Belum Lengkap"
-        message="Mohon lengkapi Awal Periode dan Akhir Periode Kepengurusan sebelum menyimpan."
+      {/* Confirm Delete Dialogs */}
+      <ConfirmDialog
+        open={confirmDeletePengurusOpen}
+        onClose={() => setConfirmDeletePengurusOpen(false)}
+        onConfirm={confirmDeletePengurus}
+        title="Hapus Pengurus"
+        message="Apakah Anda yakin ingin menghapus data pengurus ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteSKPengawasOpen}
+        onClose={() => setConfirmDeleteSKPengawasOpen(false)}
+        onConfirm={confirmDeleteSKPengawas}
+        title="Hapus SK Pengawas"
+        message="Apakah Anda yakin ingin menghapus dokumen SK Pengawas ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteSKDirekturOpen}
+        onClose={() => setConfirmDeleteSKDirekturOpen(false)}
+        onConfirm={confirmDeleteSKDirektur}
+        title="Hapus SK Direktur"
+        message="Apakah Anda yakin ingin menghapus dokumen SK Direktur ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteSKPegawaiOpen}
+        onClose={() => setConfirmDeleteSKPegawaiOpen(false)}
+        onConfirm={confirmDeleteSKPegawai}
+        title="Hapus SK Pegawai"
+        message="Apakah Anda yakin ingin menghapus dokumen SK Pegawai ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteSKPengurusOpen}
+        onClose={() => setConfirmDeleteSKPengurusOpen(false)}
+        onConfirm={confirmDeleteSKPengurus}
+        title="Hapus SK Pengurus"
+        message="Apakah Anda yakin ingin menghapus dokumen SK Pengurus ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteBAOpen}
+        onClose={() => setConfirmDeleteBAOpen(false)}
+        onConfirm={confirmDeleteBA}
+        title="Hapus Berita Acara"
+        message="Apakah Anda yakin ingin menghapus dokumen Berita Acara ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
       />
 
       {/* Download Confirmation Modal */}

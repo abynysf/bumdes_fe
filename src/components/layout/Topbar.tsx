@@ -44,17 +44,80 @@ const routeConfigs: Record<string, RouteConfig> = {
     },
   },
   "/business-units": {
-    title: "Unit Usaha BUM Desa",
+    title: "Manajemen Unit Usaha BUM Desa",
     breadcrumb: {
       parent: { label: "Unit Usaha BUM Desa", to: "/business-units" },
       current: "Daftar Unit Usaha",
     },
   },
-  "/financial-reports": {
+  "/business-units/daftar": {
+    title: "Manajemen Unit Usaha BUM Desa",
+    breadcrumb: {
+      parent: { label: "Unit Usaha BUM Desa", to: "/business-units" },
+      current: "Daftar Unit Usaha",
+    },
+  },
+  "/business-units/sop": {
+    title: "Manajemen Unit Usaha BUM Desa",
+    breadcrumb: {
+      parent: { label: "Unit Usaha BUM Desa", to: "/business-units" },
+      current: "SOP Unit Usaha",
+    },
+  },
+  "/business-units/dokumentasi": {
+    title: "Manajemen Unit Usaha BUM Desa",
+    breadcrumb: {
+      parent: { label: "Unit Usaha BUM Desa", to: "/business-units" },
+      current: "Dokumentasi Kegiatan",
+    },
+  },
+  "/laporan": {
     title: "Laporan BUM Desa",
     breadcrumb: {
-      parent: { label: "Laporan BUM Desa", to: "/financial-reports" },
-      current: "Daftar Laporan",
+      parent: { label: "Laporan BUM Desa", to: "/laporan" },
+      current: "Ringkasan",
+    },
+  },
+  "/laporan/ringkasan": {
+    title: "Laporan BUM Desa",
+    breadcrumb: {
+      parent: { label: "Laporan BUM Desa", to: "/laporan" },
+      current: "Ringkasan",
+    },
+  },
+  "/laporan/program-kerja": {
+    title: "Laporan BUM Desa",
+    breadcrumb: {
+      parent: { label: "Laporan BUM Desa", to: "/laporan" },
+      current: "Program Kerja",
+    },
+  },
+  "/laporan/laporan-pengawas": {
+    title: "Laporan BUM Desa",
+    breadcrumb: {
+      parent: { label: "Laporan BUM Desa", to: "/laporan" },
+      current: "Laporan Pengawas",
+    },
+  },
+  "/laporan/laporan-bulanan": {
+    title: "Laporan BUM Desa",
+    breadcrumb: {
+      parent: { label: "Laporan BUM Desa", to: "/laporan" },
+      current: "Laporan Bulanan",
+    },
+  },
+  "/laporan/laporan-semesteran": {
+    title: "Laporan BUM Desa",
+    breadcrumb: {
+      parent: { label: "Laporan BUM Desa", to: "/laporan" },
+      current: "Laporan Semesteran",
+    },
+  },
+  "/laporan/laporan-tahunan": {
+    title: "Laporan BUM Desa",
+    breadcrumb: {
+      parent: { label: "Laporan BUM Desa", to: "/laporan" },
+      current: "Laporan Tahunan",
     },
   },
   "/others": {

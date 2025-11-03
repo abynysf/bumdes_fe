@@ -7,6 +7,7 @@ import AddAssetModal, {
   type AssetPayload,
 } from "../components/modals/AddAssetModal";
 import SaveResultModal from "../components/modals/SaveResultModal";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { useIsMobile } from "../hooks";
 import {
   Download,
@@ -134,6 +135,10 @@ export default function Assets() {
   const [downloadConfirmOpen, setDownloadConfirmOpen] = useState(false);
   const [fileToDownload, setFileToDownload] = useState<string>("");
 
+  // Confirm delete states
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+
   const handleSidebarClose = () => {
     if (isMobile) {
       setSidebarOpen(false);
@@ -203,6 +208,19 @@ export default function Assets() {
     setDownloadConfirmOpen(false);
     setFileToDownload("");
   }, [fileToDownload, downloadFile]);
+
+  // Delete handler
+  const handleDelete = useCallback((index: number) => {
+    setDeleteIndex(index);
+    setConfirmDeleteOpen(true);
+  }, []);
+
+  const confirmDelete = useCallback(() => {
+    if (deleteIndex !== null) {
+      dispatch({ type: "asset/remove", index: deleteIndex });
+      setDeleteIndex(null);
+    }
+  }, [deleteIndex]);
 
   // Export to CSV
   const exportToCSV = useCallback(() => {
@@ -331,6 +349,7 @@ export default function Assets() {
     {
       header: "Aksi",
       accessor: () => null,
+      align: "right",
       cell: (row) => {
         const rowIndex = row._index;
         return (
@@ -372,11 +391,7 @@ export default function Assets() {
             <button
               type="button"
               className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-              onClick={() => {
-                if (confirm("Hapus aset ini?")) {
-                  dispatch({ type: "asset/remove", index: rowIndex });
-                }
-              }}
+              onClick={() => handleDelete(rowIndex)}
               title="Hapus"
               aria-label="Hapus asset"
             >
@@ -386,7 +401,6 @@ export default function Assets() {
         );
       },
       width: "w-40",
-      align: "right",
     },
   ];
 
@@ -396,14 +410,27 @@ export default function Assets() {
       <style>{`
         @media print {
           @page {
-            margin: 1cm;
+            margin: 2cm 1.5cm;
+            size: landscape;
           }
 
-          /* Hide sidebar and navigation */
+          /* Remove ALL rounded corners and shadows from EVERYTHING */
+          * {
+            border-radius: 0 !important;
+            box-shadow: none !important;
+          }
+
+          /* Remove borders from container elements */
+          div, section, main {
+            border: none !important;
+          }
+
+          /* Hide sidebar, navigation, and buttons */
           aside,
           nav,
-          header[class*="top"],
-          button {
+          header,
+          button,
+          .no-print {
             display: none !important;
           }
 
@@ -416,13 +443,15 @@ export default function Assets() {
             padding: 0 !important;
           }
 
-          /* Show main content */
+          /* Show only printable content */
           body * {
             visibility: hidden;
           }
 
           main,
-          main * {
+          main *,
+          .print-only,
+          .print-only * {
             visibility: visible !important;
           }
 
@@ -432,38 +461,48 @@ export default function Assets() {
             top: 0 !important;
             width: 100% !important;
             overflow: visible !important;
+            padding: 0 !important;
           }
 
-          /* Hide buttons in main content */
-          main button {
+          /* Hide the header card with total */
+          main > section > div:first-child {
             display: none !important;
-            visibility: hidden !important;
           }
 
-          /* Make backgrounds print-friendly */
-          .bg-gradient-to-r {
-            background: white !important;
-            color: #000 !important;
-            box-shadow: none !important;
-            border: 1px solid #ddd !important;
+          /* Print document title */
+          .print-only {
+            display: block !important;
           }
 
-          .text-white,
-          .text-blue-100,
-          .text-blue-600,
-          .text-blue-700 {
+          .print-title {
+            text-align: center;
+            font-size: 18pt;
+            font-weight: bold;
+            margin-bottom: 24px;
             color: #000 !important;
           }
 
-          /* Ensure table is visible */
+          /* Table styling */
           table {
             width: 100% !important;
             border-collapse: collapse !important;
             page-break-inside: auto;
+            font-size: 10pt;
           }
 
           thead {
             display: table-header-group;
+            background-color: #059669 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          thead th {
+            background-color: #059669 !important;
+            color: white !important;
+            font-weight: bold !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
 
           tr {
@@ -472,31 +511,69 @@ export default function Assets() {
           }
 
           th, td {
-            border: 1px solid #ddd !important;
-            padding: 8px !important;
+            border: 1px solid #333 !important;
+            padding: 8px 6px !important;
+            text-align: left;
           }
 
-          /* Hide last two columns (Bukti and Aksi) */
-          td:last-child,
-          th:last-child,
-          td:nth-last-child(2),
-          th:nth-last-child(2) {
+          /* Hide Bukti and Aksi columns */
+          table th:nth-last-child(1),
+          table td:nth-last-child(1),
+          table th:nth-last-child(2),
+          table td:nth-last-child(2) {
             display: none !important;
+          }
+
+          /* Signature section */
+          .print-signature {
+            margin-top: 48px;
+            page-break-inside: avoid;
+          }
+
+          .print-signature-header {
+            text-align: right;
+            margin-bottom: 16px;
+            font-size: 11pt;
+          }
+
+          .print-signature-grid {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+          }
+
+          .print-signature-box {
+            width: 45%;
+            text-align: center;
+          }
+
+          .print-signature-label {
+            margin-bottom: 80px;
+            font-size: 11pt;
+          }
+
+          .print-signature-line {
+            border-bottom: 1px solid #000 !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            width: 200px;
+            margin: 0 auto;
           }
         }
       `}</style>
 
-      <div className="flex h-screen overflow-hidden bg-neutral-50">
+      <div className="flex h-screen">
         <Sidebar
           isOpen={sidebarOpen || !isMobile}
           onClose={handleSidebarClose}
         />
 
-        <div className="flex flex-1 flex-col overflow-hidden">
+        <div className="w-full overflow-y-auto">
           <Topbar onMenuClick={() => setSidebarOpen(true)} />
 
-          <main className="flex-1 overflow-y-auto">
-            <section className="bg-neutral-50 p-4 sm:p-6 lg:p-8">
+          <main>
+            <section className="bg-white p-6">
               {/* Header Card with Total */}
               <div className="mb-6 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 p-8 shadow-lg">
                 <div className="flex items-center justify-between">
@@ -515,8 +592,16 @@ export default function Assets() {
               </div>
 
               {/* Data Table Card */}
-              <div className="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-                <div className="mb-4">
+              <div className="min-h-[600px] rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+                {/* Print-only Title */}
+                <div
+                  className="print-only print-title"
+                  style={{ display: "none" }}
+                >
+                  Daftar Aset BUM
+                </div>
+
+                <div className="mb-4 no-print">
                   <h1 className="text-2xl font-bold text-neutral-900">
                     Aset BUM Desa
                   </h1>
@@ -530,6 +615,35 @@ export default function Assets() {
                     emptyMessage="Tidak ada data yang ditambahkan"
                     getRowKey={(_, index) => index}
                   />
+                </div>
+
+                {/* Print-only Signature Section */}
+                <div
+                  className="print-only print-signature"
+                  style={{ display: "none" }}
+                >
+                  <div className="print-signature-header">
+                    Purwodadi,{" "}
+                    {new Date().toLocaleDateString("id-ID", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </div>
+                  <div className="print-signature-grid">
+                    <div className="print-signature-box">
+                      <div className="print-signature-label">
+                        Mengetahui,
+                        <br />
+                        Direktur BUMDesa
+                      </div>
+                      <div className="print-signature-line"></div>
+                    </div>
+                    <div className="print-signature-box">
+                      <div className="print-signature-label">Sekretaris</div>
+                      <div className="print-signature-line"></div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
@@ -556,7 +670,7 @@ export default function Assets() {
                       setOpenAssetModal(true);
                     }}
                   >
-                    Data
+                    Tambah Data
                   </Button>
                 </div>
               </div>
@@ -671,6 +785,18 @@ export default function Assets() {
             </div>
           </div>
         )}
+
+        {/* Confirm Delete Dialog */}
+        <ConfirmDialog
+          open={confirmDeleteOpen}
+          onClose={() => setConfirmDeleteOpen(false)}
+          onConfirm={confirmDelete}
+          title="Hapus Aset"
+          message="Apakah Anda yakin ingin menghapus aset ini? Tindakan ini tidak dapat dibatalkan."
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          variant="danger"
+        />
       </div>
     </>
   );

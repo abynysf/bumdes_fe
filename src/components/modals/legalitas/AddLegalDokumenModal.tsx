@@ -53,6 +53,13 @@ export default function AddLegalDokumenModal({
 
   const [openUpload, setOpenUpload] = useState(false);
 
+  // Number handler (only allow digits and empty)
+  const handleNumber = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.trim();
+    if (raw === "") return setNominal("");
+    if (/^\d+$/.test(raw)) setNominal(Number(raw));
+  };
+
   // Populate fields when editing
   useEffect(() => {
     if (initialData) {
@@ -140,14 +147,9 @@ export default function AddLegalDokumenModal({
           {showNominal && (
             <TextInput
               label={nominalLabel}
-              type="number"
               placeholder="cth: 15000000"
-              value={nominal as any}
-              onChange={(e: any) => {
-                const v = e.target?.value ?? e;
-                const num = v === "" ? "" : Number(v);
-                setNominal(Number.isNaN(num) ? "" : num);
-              }}
+              value={String(nominal ?? "")}
+              onChange={handleNumber}
             />
           )}
 

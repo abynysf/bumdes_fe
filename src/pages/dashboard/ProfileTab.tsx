@@ -10,6 +10,7 @@ import AddRekeningModal from "../../components/modals/profil/AddRekeningModal";
 import UploadDokumenModal from "../../components/modals/UploadDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
 import WarningModal from "../../components/modals/WarningModal";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import { Download, Eye, Pencil, Trash2 } from "lucide-react";
 
 /* ===========================
@@ -181,6 +182,18 @@ export default function ProfileTab() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [fileToPreview, setFileToPreview] = useState<string>("");
 
+  // Confirm delete states
+  const [confirmDeleteDokumenOpen, setConfirmDeleteDokumenOpen] =
+    useState(false);
+  const [deleteDokumenIndex, setDeleteDokumenIndex] = useState<number | null>(
+    null
+  );
+  const [confirmDeleteRekeningOpen, setConfirmDeleteRekeningOpen] =
+    useState(false);
+  const [deleteRekeningIndex, setDeleteRekeningIndex] = useState<
+    number | null
+  >(null);
+
   // Handlers
   const updateForm = useCallback(
     (key: keyof BaseProfile, value: BaseProfile[keyof BaseProfile]) =>
@@ -295,6 +308,31 @@ export default function ProfileTab() {
     },
     [editingDokumenIndex]
   );
+
+  // Delete handlers
+  const handleDeleteDokumen = useCallback((index: number) => {
+    setDeleteDokumenIndex(index);
+    setConfirmDeleteDokumenOpen(true);
+  }, []);
+
+  const confirmDeleteDokumen = useCallback(() => {
+    if (deleteDokumenIndex !== null) {
+      dispatch({ type: "dokumen/remove", index: deleteDokumenIndex });
+      setDeleteDokumenIndex(null);
+    }
+  }, [deleteDokumenIndex]);
+
+  const handleDeleteRekening = useCallback((index: number) => {
+    setDeleteRekeningIndex(index);
+    setConfirmDeleteRekeningOpen(true);
+  }, []);
+
+  const confirmDeleteRekening = useCallback(() => {
+    if (deleteRekeningIndex !== null) {
+      dispatch({ type: "rekening/remove", index: deleteRekeningIndex });
+      setDeleteRekeningIndex(null);
+    }
+  }, [deleteRekeningIndex]);
 
   return (
     <div className="grid grid-cols-12 gap-6 p-6">
@@ -486,9 +524,7 @@ export default function ProfileTab() {
 
                           <button
                             type="button"
-                            onClick={() =>
-                              dispatch({ type: "dokumen/remove", index: i })
-                            }
+                            onClick={() => handleDeleteDokumen(i)}
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
                             title="Hapus"
                             aria-label="Hapus dokumen"
@@ -651,9 +687,7 @@ export default function ProfileTab() {
                           <button
                             type="button"
                             className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
-                            onClick={() =>
-                              dispatch({ type: "rekening/remove", index: i })
-                            }
+                            onClick={() => handleDeleteRekening(i)}
                             title="Hapus"
                             aria-label="Hapus rekening"
                           >
@@ -726,6 +760,29 @@ export default function ProfileTab() {
         type="warning"
         title="Data Belum Lengkap"
         message="Mohon lengkapi data wajib sebelum menyimpan."
+      />
+
+      {/* Confirm Delete Dialogs */}
+      <ConfirmDialog
+        open={confirmDeleteDokumenOpen}
+        onClose={() => setConfirmDeleteDokumenOpen(false)}
+        onConfirm={confirmDeleteDokumen}
+        title="Hapus Dokumen"
+        message="Apakah Anda yakin ingin menghapus dokumen ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteRekeningOpen}
+        onClose={() => setConfirmDeleteRekeningOpen(false)}
+        onConfirm={confirmDeleteRekening}
+        title="Hapus Rekening"
+        message="Apakah Anda yakin ingin menghapus data rekening ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="danger"
       />
 
       {/* Download Confirmation Modal */}
