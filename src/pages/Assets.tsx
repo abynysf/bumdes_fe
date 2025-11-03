@@ -474,6 +474,12 @@ export default function Assets() {
             display: block !important;
           }
 
+          /* Show empty message if no data */
+          .empty-message {
+            visibility: visible !important;
+            display: block !important;
+          }
+
           .print-title {
             text-align: center;
             font-size: 18pt;

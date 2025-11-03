@@ -348,31 +348,146 @@ export default function RingkasanTab() {
       <style>{`
         @media print {
           @page {
-            margin: 1cm;
+            margin: 2cm 1.5cm;
+            size: landscape;
           }
+
+          /* Remove ALL rounded corners and shadows */
+          * {
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            outline: none !important;
+          }
+
+          /* Remove background colors from wrapper elements */
+          div, section {
+            background-color: white !important;
+            border: none !important;
+          }
+
+          /* Hide everything except the print content */
           body * {
             visibility: hidden;
           }
-          main,
-          main * {
+
+          /* Show only the first section (Ringkasan Laba Rugi) */
+          .print-section,
+          .print-section * {
             visibility: visible !important;
           }
-          main {
+
+          /* Hide buttons and controls */
+          button,
+          .no-print {
+            display: none !important;
+          }
+
+          /* Hide the second section (Hasil Musdes) */
+          .hide-on-print {
+            display: none !important;
+          }
+
+          /* Position the print section */
+          .print-section {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
+            padding: 20px !important;
           }
-          button,
-          .no-print {
-            display: none !important;
+
+          /* Print title styling */
+          .print-title {
+            display: block !important;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 24px;
+            color: #000;
+          }
+
+          /* Show empty message if no data */
+          .empty-message {
+            visibility: visible !important;
+            display: block !important;
+          }
+
+          /* Table styling */
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 24px;
+          }
+
+          thead {
+            background-color: #059669 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          th {
+            background-color: #059669 !important;
+            color: white !important;
+            font-weight: 600;
+            padding: 12px 8px;
+            text-align: left;
+            border: 1px solid #333 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          td {
+            padding: 10px 8px;
+            border: 1px solid #333 !important;
+            color: #000;
+          }
+
+          tbody tr {
+            background-color: white !important;
+          }
+
+          tbody tr:nth-child(even) {
+            background-color: #f9fafb !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          /* Signature section */
+          .print-signature {
+            display: flex !important;
+            justify-content: space-between;
+            margin-top: 48px;
+            page-break-inside: avoid;
+          }
+
+          .signature-box {
+            width: 45%;
+            text-align: center;
+          }
+
+          .signature-role {
+            font-weight: 600;
+            margin-bottom: 60px;
+            color: #000;
+          }
+
+          .signature-name {
+            border-top: 1px solid #333;
+            padding-top: 8px;
+            font-weight: 500;
+            color: #000;
           }
         }
       `}</style>
 
       <div className="min-h-[600px] p-6">
         {/* Section 1: Ringkasan Laba Rugi Tahunan */}
-        <div className="mb-8">
+        <div className="mb-8 print-section">
+          {/* Print-only title */}
+          <div className="print-title" style={{ display: "none" }}>
+            Ringkasan Laba Rugi Tahunan
+          </div>
+
           <h2 className="mb-4 text-lg font-semibold text-neutral-900">
             Ringkasan Laba Rugi Tahunan
           </h2>
@@ -384,6 +499,19 @@ export default function RingkasanTab() {
               getRowKey={(_, index) => index}
             />
           </div>
+
+          {/* Print-only signature section */}
+          <div className="print-signature" style={{ display: "none" }}>
+            <div className="signature-box">
+              <div className="signature-role">Direktur BUMDesa</div>
+              <div className="signature-name">(...........................)</div>
+            </div>
+            <div className="signature-box">
+              <div className="signature-role">Sekretaris</div>
+              <div className="signature-name">(...........................)</div>
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3">
             <button
               onClick={handlePrint}
@@ -405,7 +533,7 @@ export default function RingkasanTab() {
         </div>
 
         {/* Section 2: Hasil Musyawarah Desa Tahunan */}
-        <div>
+        <div className="hide-on-print">
           <h2 className="mb-4 text-lg font-semibold text-neutral-900">
             Hasil Musyawarah Desa Tahunan
           </h2>
