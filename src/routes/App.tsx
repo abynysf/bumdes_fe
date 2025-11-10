@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "../contexts/AuthContext";
+import ProtectedRoute from "../components/ProtectedRoute";
+import Login from "../pages/Login";
 import Dashboard from "../pages/Dashboard";
 import ProfileTab from "../pages/dashboard/ProfileTab";
 import StrukturTab from "../pages/dashboard/StrukturTab";
@@ -17,53 +20,99 @@ import LaporanSemesteranTab from "../pages/laporan/LaporanSemesteranTab";
 import LaporanTahunanTab from "../pages/laporan/LaporanTahunanTab";
 import Others from "../pages/Others";
 
+// Root redirect component that checks authentication
+function RootRedirect() {
+  const { isAuthenticated } = useAuth();
+  return (
+    <Navigate to={isAuthenticated ? "/dashboard/profile" : "/login"} replace />
+  );
+}
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* send / to the default tab */}
-        <Route
-          path="/"
-          element={<Navigate to="/dashboard/profile" replace />}
-        />
+      <AuthProvider>
+        <Routes>
+          {/* Login page - public route */}
+          <Route path="/login" element={<Login />} />
 
-        {/* Dashboard (Profil BUM Desa) - with tabs */}
-        <Route path="dashboard" element={<Dashboard />}>
-          <Route index element={<Navigate to="profile" replace />} />
-          <Route path="profile" element={<ProfileTab />} />
-          <Route path="struktur" element={<StrukturTab />} />
-          <Route path="legalitas" element={<LegalitasTab />} />
-        </Route>
+          {/* Root redirect - checks auth status */}
+          <Route path="/" element={<RootRedirect />} />
 
-        {/* Business Units (Unit Usaha BUM Desa) - with tabs */}
-        <Route path="business-units" element={<BusinessUnits />}>
-          <Route index element={<Navigate to="daftar" replace />} />
-          <Route path="daftar" element={<DaftarUnitUsahaTab />} />
-          <Route path="sop" element={<SOPUnitUsahaTab />} />
-          <Route path="dokumentasi" element={<DokumentasiKegiatanTab />} />
-        </Route>
+          {/* Protected routes - require authentication */}
+          {/* Dashboard (Profil BUM Desa) - with tabs */}
+          <Route
+            path="dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="profile" replace />} />
+            <Route path="profile" element={<ProfileTab />} />
+            <Route path="struktur" element={<StrukturTab />} />
+            <Route path="legalitas" element={<LegalitasTab />} />
+          </Route>
 
-        {/* Laporan BUM Desa - with tabs */}
-        <Route path="laporan" element={<Laporan />}>
-          <Route index element={<Navigate to="ringkasan" replace />} />
-          <Route path="ringkasan" element={<RingkasanTab />} />
-          <Route path="program-kerja" element={<ProgramKerjaTab />} />
-          <Route path="laporan-pengawas" element={<LaporanPengawasTab />} />
-          <Route path="laporan-bulanan" element={<LaporanBulananTab />} />
-          <Route path="laporan-semesteran" element={<LaporanSemesteranTab />} />
-          <Route path="laporan-tahunan" element={<LaporanTahunanTab />} />
-        </Route>
+          {/* Business Units (Unit Usaha BUM Desa) - with tabs */}
+          <Route
+            path="business-units"
+            element={
+              <ProtectedRoute>
+                <BusinessUnits />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="daftar" replace />} />
+            <Route path="daftar" element={<DaftarUnitUsahaTab />} />
+            <Route path="sop" element={<SOPUnitUsahaTab />} />
+            <Route path="dokumentasi" element={<DokumentasiKegiatanTab />} />
+          </Route>
 
-        {/* Standalone pages with sidebar */}
-        <Route path="assets" element={<Assets />} />
-        <Route path="others" element={<Others />} />
+          {/* Laporan BUM Desa - with tabs */}
+          <Route
+            path="laporan"
+            element={
+              <ProtectedRoute>
+                <Laporan />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="ringkasan" replace />} />
+            <Route path="ringkasan" element={<RingkasanTab />} />
+            <Route path="program-kerja" element={<ProgramKerjaTab />} />
+            <Route path="laporan-pengawas" element={<LaporanPengawasTab />} />
+            <Route path="laporan-bulanan" element={<LaporanBulananTab />} />
+            <Route
+              path="laporan-semesteran"
+              element={<LaporanSemesteranTab />}
+            />
+            <Route path="laporan-tahunan" element={<LaporanTahunanTab />} />
+          </Route>
 
-        {/* catch-all */}
-        <Route
-          path="*"
-          element={<Navigate to="/dashboard/profile" replace />}
-        />
-      </Routes>
+          {/* Standalone pages with sidebar */}
+          <Route
+            path="assets"
+            element={
+              <ProtectedRoute>
+                <Assets />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="others"
+            element={
+              <ProtectedRoute>
+                <Others />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* catch-all */}
+          <Route path="*" element={<RootRedirect />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Search,
   IdCard,
@@ -11,7 +11,10 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import { useDebounce } from "../../hooks";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
+import ConfirmDialog from "../ui/ConfirmDialog";
 
 type Item = {
   label: string;
@@ -47,13 +50,30 @@ interface SidebarProps {
  */
 export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const debouncedSearch = useDebounce(searchQuery, 300);
 
   // Filter items based on search
   const filteredItems = menuItems.filter((item) =>
     item.label.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
+
+  // Logout confirmation handler
+  const handleLogoutClick = useCallback(() => {
+    setShowLogoutConfirm(true);
+  }, []);
+
+  // Actual logout handler
+  const confirmLogout = useCallback(() => {
+    logout();
+    showToast("success", "Logged out successfully");
+    navigate("/login");
+    setShowLogoutConfirm(false);
+  }, [logout, navigate, showToast]);
 
   const sidebarContent = (
     <>
@@ -136,23 +156,25 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       <div className="border-t bg-white p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <img
-              src="https://i.pravatar.cc/64?img=13"
-              alt="Avatar Leonardo Davichi"
-              className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-            />
+            <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-emerald-700 font-semibold text-sm">
+                {user?.name?.charAt(0).toUpperCase() || "A"}
+              </span>
+            </div>
             <div className="min-w-0">
               <div className="text-sm text-emerald-700 font-semibold leading-tight truncate">
-                Leonardo Davichi
+                {user?.name || "Admin"}
               </div>
               <div className="text-xs text-neutral-500 leading-tight truncate">
-                BUM Desa Jaya Tani
+                {user?.role || "Administrator"}
               </div>
             </div>
           </div>
           <button
+            onClick={handleLogoutClick}
             aria-label="Keluar"
-            className="rounded-md p-2 text-neutral-600 hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 flex-shrink-0"
+            title="Logout"
+            className="rounded-md p-2 text-neutral-600 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 flex-shrink-0 transition-colors"
           >
             <LogOut className="h-5 w-5" />
           </button>
@@ -182,6 +204,18 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       >
         {sidebarContent}
       </aside>
+
+      {/* Logout Confirmation Dialog */}
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={confirmLogout}
+        title="Keluar dari Akun"
+        message="Apakah Anda yakin ingin keluar? Anda perlu login kembali untuk mengakses aplikasi."
+        confirmText="Ya, Keluar"
+        cancelText="Batal"
+        variant="danger"
+      />
     </>
   );
 }

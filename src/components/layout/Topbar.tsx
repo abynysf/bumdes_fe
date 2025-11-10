@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface TopbarProps {
   onMenuClick?: () => void;
@@ -134,6 +135,7 @@ const routeConfigs: Record<string, RouteConfig> = {
  */
 export default function Topbar({ onMenuClick }: TopbarProps) {
   const location = useLocation();
+  const { user } = useAuth();
 
   // Get route config or fallback
   const config = routeConfigs[location.pathname] || {
@@ -184,6 +186,21 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
               </ol>
             </nav>
           )}
+        </div>
+
+        {/* User info - hidden on mobile, visible on desktop */}
+        <div className="hidden lg:flex items-center gap-3">
+          <div className="text-right">
+            <div className="text-sm font-semibold text-neutral-800">
+              {user?.name || "Admin"}
+            </div>
+            <div className="text-xs text-neutral-500">{user?.role || "Administrator"}</div>
+          </div>
+          <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+            <span className="text-emerald-700 font-semibold text-sm">
+              {user?.name?.charAt(0).toUpperCase() || "A"}
+            </span>
+          </div>
         </div>
       </div>
     </header>
