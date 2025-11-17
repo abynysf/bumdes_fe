@@ -289,6 +289,7 @@ const INITIAL_STRUKTUR: StrukturState = {
     {
       periode: "2022-02-01 to 2027-01-31",
       nomor: "SK/02/KADES/II/2022",
+      file: "",
     },
   ],
   skDirektur: [],
@@ -310,12 +311,14 @@ const INITIAL_LEGALITAS: LegalitasState = {
       nama: "Perdes Modal Awal",
       nomor: "02/2022",
       nominal: 50000000,
+      file: "",
     },
     {
       tahun: 2024,
       nama: "Perdes Modal Tambahan",
       nomor: "05/2024",
       nominal: 25000000,
+      file: "",
     },
   ],
 };

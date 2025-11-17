@@ -9,9 +9,9 @@ import {
   useDashboard,
   type BaseDokumen,
   type DokumenART,
-  type DokumenPerdesModal,
   type DokumenSimple,
   type DokumenAsetDesa,
+  type DokumenPerdesModal,
 } from "../../contexts/DashboardContext";
 
 /**
@@ -221,7 +221,7 @@ export default function LegalitasTab() {
   }, [editingAsetIndex]);
 
   const savePerdes = useCallback((d: LegalDokumenPayload) => {
-    const payload: DokumenPerdes = {
+    const payload: DokumenPerdesModal = {
       tahun: d.tahun,
       nama: d.nama,
       nomor: d.nomor ?? "",
