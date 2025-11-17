@@ -31,7 +31,7 @@ export default function Login() {
       setIsLoading(true);
 
       try {
-        const success = await login(email, password);
+        const success = await login(email, password, rememberMe);
 
         if (success) {
           showToast("success", "Login successful!");
@@ -45,7 +45,7 @@ export default function Login() {
         setIsLoading(false);
       }
     },
-    [email, password, login, navigate, showToast]
+    [email, password, rememberMe, login, navigate, showToast]
   );
 
   const handleForgotPassword = useCallback(() => {

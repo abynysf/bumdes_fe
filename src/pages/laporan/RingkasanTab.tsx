@@ -454,28 +454,43 @@ export default function RingkasanTab() {
 
           /* Signature section */
           .print-signature {
-            display: flex !important;
-            justify-content: space-between;
+            display: block !important;
             margin-top: 48px;
             page-break-inside: avoid;
           }
 
-          .signature-box {
-            width: 45%;
+          .print-signature-header {
+            text-align: right;
+            margin-bottom: 24px;
+            color: #000;
+            font-size: 14px;
+          }
+
+          .print-signature-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 40px;
+          }
+
+          .print-signature-box {
+            flex: 1;
             text-align: center;
           }
 
-          .signature-role {
+          .print-signature-label {
             font-weight: 600;
-            margin-bottom: 60px;
+            margin-bottom: 80px;
             color: #000;
+            font-size: 14px;
           }
 
-          .signature-name {
-            border-top: 1px solid #333;
-            padding-top: 8px;
-            font-weight: 500;
-            color: #000;
+          .print-signature-line {
+            border-bottom: 1px solid #000 !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            width: 200px;
+            margin: 0 auto;
           }
         }
       `}</style>
@@ -502,13 +517,27 @@ export default function RingkasanTab() {
 
           {/* Print-only signature section */}
           <div className="print-signature" style={{ display: "none" }}>
-            <div className="signature-box">
-              <div className="signature-role">Direktur BUMDesa</div>
-              <div className="signature-name">(...........................)</div>
+            <div className="print-signature-header">
+              Purwodadi,{" "}
+              {new Date().toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
             </div>
-            <div className="signature-box">
-              <div className="signature-role">Sekretaris</div>
-              <div className="signature-name">(...........................)</div>
+            <div className="print-signature-grid">
+              <div className="print-signature-box">
+                <div className="print-signature-label">
+                  Mengetahui,
+                  <br />
+                  Direktur BUM Desa
+                </div>
+                <div className="print-signature-line"></div>
+              </div>
+              <div className="print-signature-box">
+                <div className="print-signature-label">Sekretaris BUM Desa</div>
+                <div className="print-signature-line"></div>
+              </div>
             </div>
           </div>
 

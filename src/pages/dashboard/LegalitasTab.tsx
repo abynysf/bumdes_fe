@@ -1,75 +1,18 @@
-import { useCallback, useReducer, useState } from "react";
+import { useCallback, useState } from "react";
 import Button from "../../components/ui/Button";
 import DataCard from "../../components/ui/DataCard";
 import { Download, Eye, Pencil, Trash2 } from "lucide-react";
 import AddAnggaranModal from "../../components/modals/legalitas/AddLegalDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
-
-/**
- * ===========================
- * Types
- * ===========================
- */
-
-type BaseDokumen = {
-  tahun: number;
-  nama: string;
-  nominal?: number | "";
-  file: string;
-};
-
-type DokumenART = {
-  tahun: number;
-  nama: string;
-  nominal?: number | "";
-  file: string;
-};
-
-type DokumenPerdes = {
-  tahun: number;
-  nama: string;
-  nomor: string;
-  nominal?: number | "";
-  file: string;
-};
-
-type DokumenSimple = {
-  tahun: number;
-  nomor: string;
-  file: string;
-};
-
-type DokumenAsetDesa = {
-  tahun: number;
-  nama: string;
-  file: string;
-};
-
-type LegalitasState = {
-  anggaranDasar: BaseDokumen[];
-  anggaranRumahTangga: DokumenART[];
-  ahuBadanHukum: DokumenSimple[];
-  npwp: DokumenSimple[];
-  nib: DokumenSimple[];
-  dokumenAsetDesa: DokumenAsetDesa[];
-  perdesPenyertaanModal: DokumenPerdes[];
-};
-
-/**
- * ===========================
- * Initial
- * ===========================
- */
-const INITIAL: LegalitasState = {
-  anggaranDasar: [],
-  anggaranRumahTangga: [],
-  ahuBadanHukum: [],
-  npwp: [],
-  nib: [],
-  dokumenAsetDesa: [],
-  perdesPenyertaanModal: [],
-};
+import {
+  useDashboard,
+  type BaseDokumen,
+  type DokumenART,
+  type DokumenPerdesModal,
+  type DokumenSimple,
+  type DokumenAsetDesa,
+} from "../../contexts/DashboardContext";
 
 /**
  * ===========================
@@ -93,175 +36,6 @@ function formatCurrency(value: number | "" | undefined): string {
   return "Rp" + Intl.NumberFormat("id-ID").format(Number(value));
 }
 
-/**
- * ===========================
- * Reducer (sederhana & terpusat)
- * ===========================
- */
-
-type Action =
-  | { type: "ad/add"; payload: BaseDokumen }
-  | { type: "ad/update"; index: number; payload: BaseDokumen }
-  | { type: "ad/remove"; index: number }
-  | { type: "art/add"; payload: DokumenART }
-  | { type: "art/update"; index: number; payload: DokumenART }
-  | { type: "art/remove"; index: number }
-  | { type: "ahu/add"; payload: DokumenSimple }
-  | { type: "ahu/update"; index: number; payload: DokumenSimple }
-  | { type: "ahu/remove"; index: number }
-  | { type: "npwp/add"; payload: DokumenSimple }
-  | { type: "npwp/update"; index: number; payload: DokumenSimple }
-  | { type: "npwp/remove"; index: number }
-  | { type: "nib/add"; payload: DokumenSimple }
-  | { type: "nib/update"; index: number; payload: DokumenSimple }
-  | { type: "nib/remove"; index: number }
-  | { type: "aset/add"; payload: DokumenAsetDesa }
-  | { type: "aset/update"; index: number; payload: DokumenAsetDesa }
-  | { type: "aset/remove"; index: number }
-  | { type: "perdes/add"; payload: DokumenPerdes }
-  | { type: "perdes/update"; index: number; payload: DokumenPerdes }
-  | { type: "perdes/remove"; index: number }
-  | { type: "reset" };
-
-function reducer(state: LegalitasState, action: Action): LegalitasState {
-  switch (action.type) {
-    case "ad/add":
-      return {
-        ...state,
-        anggaranDasar: [...state.anggaranDasar, action.payload],
-      };
-    case "ad/update":
-      return {
-        ...state,
-        anggaranDasar: state.anggaranDasar.map((item, i) =>
-          i === action.index ? action.payload : item
-        ),
-      };
-    case "ad/remove":
-      return {
-        ...state,
-        anggaranDasar: state.anggaranDasar.filter((_, i) => i !== action.index),
-      };
-
-    case "art/add":
-      return {
-        ...state,
-        anggaranRumahTangga: [...state.anggaranRumahTangga, action.payload],
-      };
-    case "art/update":
-      return {
-        ...state,
-        anggaranRumahTangga: state.anggaranRumahTangga.map((item, i) =>
-          i === action.index ? action.payload : item
-        ),
-      };
-    case "art/remove":
-      return {
-        ...state,
-        anggaranRumahTangga: state.anggaranRumahTangga.filter(
-          (_, i) => i !== action.index
-        ),
-      };
-
-    case "ahu/add":
-      return {
-        ...state,
-        ahuBadanHukum: [...state.ahuBadanHukum, action.payload],
-      };
-    case "ahu/update":
-      return {
-        ...state,
-        ahuBadanHukum: state.ahuBadanHukum.map((item, i) =>
-          i === action.index ? action.payload : item
-        ),
-      };
-    case "ahu/remove":
-      return {
-        ...state,
-        ahuBadanHukum: state.ahuBadanHukum.filter((_, i) => i !== action.index),
-      };
-
-    case "npwp/add":
-      return {
-        ...state,
-        npwp: [...state.npwp, action.payload],
-      };
-    case "npwp/update":
-      return {
-        ...state,
-        npwp: state.npwp.map((item, i) =>
-          i === action.index ? action.payload : item
-        ),
-      };
-    case "npwp/remove":
-      return {
-        ...state,
-        npwp: state.npwp.filter((_, i) => i !== action.index),
-      };
-
-    case "nib/add":
-      return {
-        ...state,
-        nib: [...state.nib, action.payload],
-      };
-    case "nib/update":
-      return {
-        ...state,
-        nib: state.nib.map((item, i) =>
-          i === action.index ? action.payload : item
-        ),
-      };
-    case "nib/remove":
-      return {
-        ...state,
-        nib: state.nib.filter((_, i) => i !== action.index),
-      };
-
-    case "aset/add":
-      return {
-        ...state,
-        dokumenAsetDesa: [...state.dokumenAsetDesa, action.payload],
-      };
-    case "aset/update":
-      return {
-        ...state,
-        dokumenAsetDesa: state.dokumenAsetDesa.map((item, i) =>
-          i === action.index ? action.payload : item
-        ),
-      };
-    case "aset/remove":
-      return {
-        ...state,
-        dokumenAsetDesa: state.dokumenAsetDesa.filter((_, i) => i !== action.index),
-      };
-
-    case "perdes/add":
-      return {
-        ...state,
-        perdesPenyertaanModal: [...state.perdesPenyertaanModal, action.payload],
-      };
-    case "perdes/update":
-      return {
-        ...state,
-        perdesPenyertaanModal: state.perdesPenyertaanModal.map((item, i) =>
-          i === action.index ? action.payload : item
-        ),
-      };
-    case "perdes/remove":
-      return {
-        ...state,
-        perdesPenyertaanModal: state.perdesPenyertaanModal.filter(
-          (_, i) => i !== action.index
-        ),
-      };
-
-    case "reset":
-      return INITIAL;
-
-    default:
-      return state;
-  }
-}
 
 /**
  * ===========================
@@ -269,7 +43,7 @@ function reducer(state: LegalitasState, action: Action): LegalitasState {
  * ===========================
  */
 export default function LegalitasTab() {
-  const [state, dispatch] = useReducer(reducer, INITIAL);
+  const { legalitasState: state, legalitasDispatch: dispatch } = useDashboard();
 
   // Modal flags
   const [openAD, setOpenAD] = useState(false);
@@ -1198,7 +972,7 @@ export default function LegalitasTab() {
 
       {/* Save */}
       <div className="col-span-full flex justify-end">
-        <Button onClick={onSave}>Simpan</Button>
+        <Button onClick={onSave}>Update</Button>
       </div>
 
       {/* Modals */}

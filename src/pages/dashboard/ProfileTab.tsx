@@ -1,4 +1,4 @@
-import React, { useCallback, useReducer, useState } from "react";
+import React, { useCallback, useState } from "react";
 import TextInput from "../../components/ui/TextInput";
 import Dropdown from "../../components/ui/Dropdown";
 import YearPicker from "../../components/ui/YearPicker";
@@ -11,63 +11,13 @@ import UploadDokumenModal from "../../components/modals/UploadDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
 import WarningModal from "../../components/modals/WarningModal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
-import { Download, Eye, Pencil, Trash2 } from "lucide-react";
-
-/* ===========================
- * Types
- * =========================== */
-
-type BaseProfile = {
-  namaLengkap: string;
-  statusBadanHukum: string;
-  tahunPendirian: number | "";
-  alamatKantor: string;
-  jumlahPengurus: number | "";
-  pengurusL: number | "";
-  pengurusP: number | "";
-  skBadanHukumFile: string | null;
-};
-
-type DokumenPerdes = {
-  tahun: number;
-  nama: string;
-  nomor: string;
-  file?: string;
-};
-
-type RekeningBUM = {
-  bank: string;
-  nama: string;
-  nomor: string;
-  ketahananPangan?: boolean;
-  keterangan?: string;
-  file?: string;
-};
-
-type ProfileState = {
-  form: BaseProfile;
-  dokumen: DokumenPerdes[];
-  rekening: RekeningBUM[];
-};
-
-/* ===========================
- * Initials
- * =========================== */
-
-const INITIAL: ProfileState = {
-  form: {
-    namaLengkap: "",
-    statusBadanHukum: "",
-    tahunPendirian: "",
-    alamatKantor: "",
-    jumlahPengurus: "",
-    pengurusL: "",
-    pengurusP: "",
-    skBadanHukumFile: null,
-  },
-  dokumen: [],
-  rekening: [],
-};
+import { Download, Eye, Pencil, Printer, Trash2 } from "lucide-react";
+import {
+  useDashboard,
+  type BaseProfile,
+  type DokumenPerdes,
+  type RekeningBUM,
+} from "../../contexts/DashboardContext";
 
 /* ===========================
  * Utils
@@ -84,75 +34,16 @@ function isUrl(value: string): boolean {
 }
 
 /* ===========================
- * Reducer (sederhana & terpusat)
- * =========================== */
-
-type Action =
-  | {
-      type: "form/update";
-      key: keyof BaseProfile;
-      value: BaseProfile[keyof BaseProfile];
-    }
-  | { type: "rekening/add"; payload: RekeningBUM }
-  | { type: "rekening/update"; index: number; payload: RekeningBUM }
-  | { type: "rekening/remove"; index: number }
-  | { type: "dokumen/add"; payload: DokumenPerdes }
-  | { type: "dokumen/update"; index: number; payload: DokumenPerdes }
-  | { type: "dokumen/remove"; index: number }
-  | { type: "sk/set"; payload: string | null }
-  | { type: "reset" };
-
-function dataReducer(state: ProfileState, action: Action): ProfileState {
-  switch (action.type) {
-    case "form/update":
-      return { ...state, form: { ...state.form, [action.key]: action.value } };
-
-    case "rekening/add":
-      return { ...state, rekening: [...state.rekening, action.payload] };
-    case "rekening/update":
-      return {
-        ...state,
-        rekening: state.rekening.map((r, i) =>
-          i === action.index ? action.payload : r
-        ),
-      };
-    case "rekening/remove":
-      return {
-        ...state,
-        rekening: state.rekening.filter((_, i) => i !== action.index),
-      };
-    case "dokumen/add":
-      return { ...state, dokumen: [...state.dokumen, action.payload] };
-    case "dokumen/update":
-      return {
-        ...state,
-        dokumen: state.dokumen.map((d, i) =>
-          i === action.index ? action.payload : d
-        ),
-      };
-    case "dokumen/remove":
-      return {
-        ...state,
-        dokumen: state.dokumen.filter((_, i) => i !== action.index),
-      };
-    case "sk/set":
-      return {
-        ...state,
-        form: { ...state.form, skBadanHukumFile: action.payload },
-      };
-    case "reset":
-      return INITIAL;
-    default:
-      return state;
-  }
-}
-
-/* ===========================
  * Component
  * =========================== */
 
 export default function ProfileTab() {
-  const [state, dispatch] = useReducer(dataReducer, INITIAL);
+  const {
+    profileState: state,
+    profileDispatch: dispatch,
+    strukturState,
+    legalitasState,
+  } = useDashboard();
 
   // modal flags
   const [openRekening, setOpenRekening] = useState(false);
@@ -274,6 +165,10 @@ export default function ProfileTab() {
     setTouched(false);
   }, [state]);
 
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
   // modal save helpers
   const saveRekening = useCallback(
     (rek: RekeningBUM) => {
@@ -335,7 +230,161 @@ export default function ProfileTab() {
   }, [deleteRekeningIndex]);
 
   return (
-    <div className="grid grid-cols-12 gap-6 p-6">
+    <>
+      <style>{`
+        @media print {
+          /* Page setup - zero margin removes browser headers/footers */
+          @page {
+            margin: 0;
+            size: portrait;
+          }
+
+          /* Remove default body margin */
+          body {
+            margin: 0 !important;
+          }
+
+          /* Remove styling artifacts */
+          * {
+            border-radius: 0 !important;
+            box-shadow: none !important;
+          }
+
+          /* Hide UI elements */
+          aside,
+          nav,
+          header,
+          button,
+          .no-print {
+            display: none !important;
+          }
+
+          /* Show only printable content */
+          body * {
+            visibility: hidden;
+          }
+
+          .print-only,
+          .print-only * {
+            visibility: visible !important;
+          }
+
+          /* Position print content */
+          .print-only {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            display: block !important;
+            padding: 2cm 1.5cm !important;
+            box-sizing: border-box !important;
+          }
+
+          /* Table styling with grey header */
+          thead {
+            background-color: #6b7280 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          thead th {
+            background-color: #6b7280 !important;
+            color: white !important;
+            font-weight: bold !important;
+          }
+
+          th,
+          td {
+            border: 1px solid #333 !important;
+            padding: 4px 6px !important;
+            font-size: 10pt !important;
+          }
+
+          /* Table striping */
+          tbody tr:nth-child(even) {
+            background-color: #f9fafb !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+
+          /* Table structure */
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            margin-bottom: 12px !important;
+          }
+
+          /* Section spacing */
+          .print-only > div {
+            margin-bottom: 12px !important;
+          }
+
+          .print-only h3 {
+            font-size: 12pt !important;
+            font-weight: bold !important;
+            margin: 8px 0 6px 0 !important;
+            padding: 0 !important;
+          }
+
+          .print-only h4 {
+            font-size: 11pt !important;
+            font-weight: bold !important;
+            margin: 6px 0 5px 0 !important;
+            padding: 0 !important;
+          }
+
+          /* Print title */
+          .print-title {
+            text-align: left;
+            margin-bottom: 12px;
+            padding: 0;
+          }
+
+          .print-title h1 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            padding: 0;
+          }
+
+          /* Signature section */
+          .print-signature {
+            margin-top: 30px;
+            page-break-inside: avoid;
+          }
+
+          .print-signature-header {
+            text-align: right;
+            margin-bottom: 20px;
+            font-size: 10pt;
+          }
+
+          .print-signature-grid {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+          }
+
+          .print-signature-box {
+            width: 40%;
+            text-align: center;
+          }
+
+          .print-signature-label {
+            margin-bottom: 70px !important;
+            font-weight: bold;
+            font-size: 10pt;
+            line-height: 1.4;
+          }
+
+          .print-signature-line {
+            border-top: 1px solid #000;
+            padding-top: 3px;
+            font-size: 10pt;
+          }
+        }
+      `}</style>
+      <div className="grid grid-cols-12 gap-6 p-6">
       {/* Left: Main form */}
       <div className="col-span-full space-y-4 lg:col-span-7">
         <div>
@@ -704,9 +753,17 @@ export default function ProfileTab() {
         </DataCard>
       </div>
 
-      {/* Save */}
-      <div className="col-span-full flex justify-end">
-        <Button onClick={onSave}>Simpan</Button>
+      {/* Save and Print */}
+      <div className="col-span-full flex justify-end gap-3">
+        <button
+          type="button"
+          onClick={handlePrint}
+          className="inline-flex items-center gap-2 rounded-md bg-neutral-800 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-neutral-700 focus:ring-offset-2 no-print"
+        >
+          <Printer className="h-4 w-4" />
+          Cetak
+        </button>
+        <Button onClick={onSave}>Update</Button>
       </div>
 
       {/* Modals */}
@@ -862,6 +919,636 @@ export default function ProfileTab() {
           </div>
         </div>
       )}
+
+      {/* Print-only sections */}
+      <div className="print-only" style={{ display: "none" }}>
+        {/* Title */}
+        <div className="print-title" style={{ marginBottom: "12px" }}>
+          <h1>ProfilBUMDesa</h1>
+        </div>
+
+        {/* ========================================
+            PROFILE SECTION (Page 1-2)
+            ======================================== */}
+        <div style={{ marginBottom: "12px" }}>
+          <h3 style={{ fontSize: "12pt", fontWeight: "bold", margin: "8px 0 6px 0" }}>
+            Profil BUM Desa
+          </h3>
+          <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+            <tbody>
+              <tr>
+                <td style={{ padding: "4px 6px", border: "1px solid #333", width: "30%", fontWeight: "bold" }}>
+                  Nama BUM Desa
+                </td>
+                <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                  {state.form.namaLengkap || "-"}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "4px 6px", border: "1px solid #333", fontWeight: "bold" }}>
+                  Status Badan Hukum
+                </td>
+                <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                  {state.form.statusBadanHukum === "terbit" ? "Sudah Terbit" : state.form.statusBadanHukum === "proses" ? "Dalam Proses" : "-"}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "4px 6px", border: "1px solid #333", fontWeight: "bold" }}>
+                  Pendirian BUM Desa
+                </td>
+                <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                  {state.form.tahunPendirian || "-"}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "4px 6px", border: "1px solid #333", fontWeight: "bold" }}>
+                  Alamat Kantor
+                </td>
+                <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                  {state.form.alamatKantor || "-"}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "4px 6px", border: "1px solid #333", fontWeight: "bold" }}>
+                  Jumlah Pengurus BUM Desa
+                </td>
+                <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                  {state.form.jumlahPengurus || "-"}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "4px 6px", border: "1px solid #333", fontWeight: "bold" }}>
+                  Jumlah Pengurus Laki-laki
+                </td>
+                <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                  {state.form.pengurusL || "-"}
+                </td>
+              </tr>
+              <tr>
+                <td style={{ padding: "4px 6px", border: "1px solid #333", fontWeight: "bold" }}>
+                  Jumlah Pengurus Perempuan
+                </td>
+                <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                  {state.form.pengurusP || "-"}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Rekening BUM Desa */}
+        {state.rekening.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h3 style={{ fontSize: "12pt", fontWeight: "bold", margin: "8px 0 6px 0" }}>
+              Rekening BUM Desa
+            </h3>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Bank
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nama
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor Rekening
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Keterangan
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.rekening.map((rek, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{rek.bank}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{rek.nama}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{rek.nomor}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                      {rek.keterangan || "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Peraturan Desa Pendirian BUM Desa */}
+        {state.dokumen.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h3 style={{ fontSize: "12pt", fontWeight: "bold", margin: "8px 0 6px 0" }}>
+              Peraturan Desa Pendirian BUM Desa
+            </h3>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Tahun
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nama
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.dokumen.map((dok, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.tahun}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.nama}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.nomor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ========================================
+            STRUKTUR ORGANISASI SECTION (Page 3+)
+            ======================================== */}
+        {strukturState.pengurus.length > 0 && (
+          <div style={{ marginBottom: "12px", pageBreakBefore: "always" }}>
+            <h3 style={{ fontSize: "12pt", fontWeight: "bold", margin: "8px 0 6px 0" }}>
+              Struktur Organisasi
+            </h3>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              Pengurus BUM Desa
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Jabatan
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nama
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Pekerjaan
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor Telepon
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Gaji
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Keterangan
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {strukturState.pengurus.map((p, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{p.jabatan}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{p.namaPengurus}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{p.pekerjaan}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{p.nomorTelepon}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{p.gaji}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{p.keterangan}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* SK Pengawas */}
+        {strukturState.skPengawas.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              Surat Keputusan Pengawas
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Periode
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {strukturState.skPengawas.map((sk, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                      {sk.periode || sk.tahun || "-"}
+                    </td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{sk.nomor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* SK Direktur */}
+        {strukturState.skDirektur && strukturState.skDirektur.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              Surat Keputusan Direktur
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Periode
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {strukturState.skDirektur.map((sk, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                      {sk.periode || sk.tahun || "-"}
+                    </td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{sk.nomor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* SK Pegawai */}
+        {strukturState.skPegawai && strukturState.skPegawai.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              Surat Keputusan Pegawai
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Periode
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {strukturState.skPegawai.map((sk, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                      {sk.periode || sk.tahun || "-"}
+                    </td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{sk.nomor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* SK Pengurus */}
+        {strukturState.skPengurus && strukturState.skPengurus.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              Surat Keputusan Pengurus
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Periode
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {strukturState.skPengurus.map((sk, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                      {sk.periode || sk.tahun || "-"}
+                    </td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{sk.nomor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Berita Acara */}
+        {strukturState.beritaAcara && strukturState.beritaAcara.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              Berita Acara
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Periode
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {strukturState.beritaAcara.map((ba, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                      {ba.periode || ba.tahun || "-"}
+                    </td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{ba.nomor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ========================================
+            LEGALITAS SECTION (Page 4+)
+            ======================================== */}
+        {/* Anggaran Dasar */}
+        {legalitasState.anggaranDasar && legalitasState.anggaranDasar.length > 0 && (
+          <div style={{ marginBottom: "12px", pageBreakBefore: "always" }}>
+            <h3 style={{ fontSize: "12pt", fontWeight: "bold", margin: "8px 0 6px 0" }}>
+              Legalitas
+            </h3>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              Anggaran Dasar
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Tahun
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nama
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {legalitasState.anggaranDasar.map((dok, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.tahun}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.nama}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Anggaran Rumah Tangga */}
+        {legalitasState.anggaranRumahTangga && legalitasState.anggaranRumahTangga.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              Anggaran Rumah Tangga
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Tahun
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nama
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {legalitasState.anggaranRumahTangga.map((dok, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.tahun}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.nama}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* AHU Badan Hukum */}
+        {legalitasState.ahuBadanHukum && legalitasState.ahuBadanHukum.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              AHU Badan Hukum
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Tahun
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {legalitasState.ahuBadanHukum.map((dok, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.tahun}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.nomor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* NPWP */}
+        {legalitasState.npwp && legalitasState.npwp.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              NPWP
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Tahun
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {legalitasState.npwp.map((dok, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.tahun}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.nomor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* NIB */}
+        {legalitasState.nib && legalitasState.nib.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              NIB
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Tahun
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {legalitasState.nib.map((dok, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.tahun}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.nomor}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Dokumen Aset Desa */}
+        {legalitasState.dokumenAsetDesa && legalitasState.dokumenAsetDesa.length > 0 && (
+          <div style={{ marginBottom: "12px" }}>
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              Dokumen Aset Desa
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Tahun
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nama
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {legalitasState.dokumenAsetDesa.map((dok, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.tahun}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{dok.nama}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Perdes Penyertaan Modal */}
+        {legalitasState.perdesPenyertaanModal && legalitasState.perdesPenyertaanModal.length > 0 && (
+          <div style={{ marginBottom: "12px", pageBreakBefore: legalitasState.anggaranDasar?.length === 0 && legalitasState.anggaranRumahTangga?.length === 0 && legalitasState.ahuBadanHukum?.length === 0 && legalitasState.npwp?.length === 0 && legalitasState.nib?.length === 0 && legalitasState.dokumenAsetDesa?.length === 0 ? "always" : "auto" }}>
+            {legalitasState.anggaranDasar?.length === 0 && legalitasState.anggaranRumahTangga?.length === 0 && legalitasState.ahuBadanHukum?.length === 0 && legalitasState.npwp?.length === 0 && legalitasState.nib?.length === 0 && legalitasState.dokumenAsetDesa?.length === 0 && (
+              <h3 style={{ fontSize: "12pt", fontWeight: "bold", margin: "8px 0 6px 0" }}>
+                Legalitas
+              </h3>
+            )}
+            <h4 style={{ fontSize: "11pt", fontWeight: "bold", margin: "6px 0 5px 0" }}>
+              Perdes Penyertaan Modal
+            </h4>
+            <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px" }}>
+              <thead>
+                <tr style={{ backgroundColor: "#6b7280" }}>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Tahun
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nama
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nomor
+                  </th>
+                  <th style={{ padding: "4px 6px", border: "1px solid #333", color: "white", textAlign: "left" }}>
+                    Nominal
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {legalitasState.perdesPenyertaanModal.map((perdes, idx) => (
+                  <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? "white" : "#f9fafb" }}>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{perdes.tahun}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{perdes.nama}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>{perdes.nomor}</td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333" }}>
+                      {perdes.nominal
+                        ? "Rp " + new Intl.NumberFormat("id-ID").format(Number(perdes.nominal))
+                        : "-"}
+                    </td>
+                  </tr>
+                ))}
+                {legalitasState.perdesPenyertaanModal.length > 0 && (
+                  <tr>
+                    <td colSpan={3} style={{ padding: "4px 6px", border: "1px solid #333", fontWeight: "bold", textAlign: "right" }}>
+                      Total Modal
+                    </td>
+                    <td style={{ padding: "4px 6px", border: "1px solid #333", fontWeight: "bold" }}>
+                      Rp {new Intl.NumberFormat("id-ID").format(
+                        legalitasState.perdesPenyertaanModal.reduce(
+                          (sum, p) => sum + (typeof p.nominal === "number" ? p.nominal : 0),
+                          0
+                        )
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ========================================
+            SIGNATURE SECTION (Final Page)
+            ======================================== */}
+        <div className="print-signature">
+          <div className="print-signature-header">
+            {state.form.alamatKantor ? state.form.alamatKantor.split(",")[0] : "Purwodadi"},{" "}
+            {new Date().toLocaleDateString("id-ID", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </div>
+          <div className="print-signature-grid">
+            <div className="print-signature-box">
+              <div className="print-signature-label">
+                Mengetahui,
+                <br />
+                Kepala Desa
+              </div>
+              <div>
+                (....................)
+              </div>
+            </div>
+            <div className="print-signature-box">
+              <div className="print-signature-label">
+                Direktur BUM Desa
+              </div>
+              <div className="print-signature-line">
+                {strukturState.pengurus.find((p) => p.jabatan.toLowerCase().includes("direktur"))?.namaPengurus || "(....................)"}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+    </>
   );
 }

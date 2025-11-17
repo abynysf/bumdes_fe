@@ -4,6 +4,7 @@ import Sidebar from "../components/layout/Sidebar";
 import Topbar from "../components/layout/Topbar";
 import { useIsMobile } from "../hooks";
 import clsx from "clsx";
+import { DashboardProvider } from "../contexts/DashboardContext";
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -60,7 +61,9 @@ export default function Dashboard() {
 
               {/* active tab content */}
               <div className="border border-gray-200 rounded-b-lg border-t-0 bg-white">
-                <Outlet />
+                <DashboardProvider>
+                  <Outlet />
+                </DashboardProvider>
               </div>
             </div>
           </section>

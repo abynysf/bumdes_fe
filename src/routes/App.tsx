@@ -19,6 +19,8 @@ import LaporanBulananTab from "../pages/laporan/LaporanBulananTab";
 import LaporanSemesteranTab from "../pages/laporan/LaporanSemesteranTab";
 import LaporanTahunanTab from "../pages/laporan/LaporanTahunanTab";
 import Others from "../pages/Others";
+import KetahananPanganTab from "../pages/others/KetahananPanganTab";
+import DokumenLainTab from "../pages/others/DokumenLainTab";
 
 // Root redirect component that checks authentication
 function RootRedirect() {
@@ -100,6 +102,8 @@ export default function AppRouter() {
               </ProtectedRoute>
             }
           />
+
+          {/* Others (Lain-lain) - with tabs */}
           <Route
             path="others"
             element={
@@ -107,7 +111,11 @@ export default function AppRouter() {
                 <Others />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<Navigate to="ketahanan-pangan" replace />} />
+            <Route path="ketahanan-pangan" element={<KetahananPanganTab />} />
+            <Route path="dokumen-lain" element={<DokumenLainTab />} />
+          </Route>
 
           {/* catch-all */}
           <Route path="*" element={<RootRedirect />} />

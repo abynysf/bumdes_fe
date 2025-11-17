@@ -1,4 +1,4 @@
-import { useCallback, useReducer, useState } from "react";
+import { useCallback, useState } from "react";
 import Button from "../../components/ui/Button";
 import DataCard from "../../components/ui/DataCard";
 import { Download, Eye, Pencil, Trash2 } from "lucide-react";
@@ -6,80 +6,15 @@ import AddPengurusBUMModal from "../../components/modals/struktur/AddPengurusBUM
 import AddStrukturDokumenModal from "../../components/modals/struktur/AddStrukturDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
-
-/**
- * ===========================
- * Types
- * ===========================
- */
-
-type PengurusBUM = {
-  jabatan: string;
-  namaPengurus: string;
-  pekerjaan: string;
-  nomorTelepon: string;
-  gaji: string;
-  keterangan: string;
-};
-
-type SKPengawas = {
-  periode?: string;
-  tahun?: string;
-  nomor: string;
-  file: string;
-};
-
-type SKDirektur = {
-  periode?: string;
-  tahun?: string;
-  nomor: string;
-  file: string;
-};
-
-type SKPegawai = {
-  periode?: string;
-  tahun?: string;
-  nomor: string;
-  file: string;
-};
-
-type SKPengurus = {
-  periode?: string;
-  tahun?: string;
-  nomor: string;
-  file: string;
-};
-
-type BeritaAcaraBUM = {
-  periode?: string;
-  tahun?: string;
-  nomor: string;
-  file: string;
-};
-
-type StukturState = {
-  pengurus: PengurusBUM[];
-  skPengawas: SKPengawas[];
-  skDirektur: SKDirektur[];
-  skPegawai: SKPegawai[];
-  skPengurus: SKPengurus[];
-  beritaAcara: BeritaAcaraBUM[];
-};
-
-/**
- * ===========================
- * Initials
- * ===========================
- */
-
-const INITIAL: StukturState = {
-  pengurus: [],
-  skPengawas: [],
-  skDirektur: [],
-  skPegawai: [],
-  skPengurus: [],
-  beritaAcara: [],
-};
+import {
+  useDashboard,
+  type PengurusBUM,
+  type SKPengawas,
+  type SKDirektur,
+  type SKPegawai,
+  type SKPengurus,
+  type BeritaAcaraBUM,
+} from "../../contexts/DashboardContext";
 
 /**
  * ===========================
@@ -97,132 +32,6 @@ function isUrl(value: string): boolean {
   }
 }
 
-/**
- * ===========================
- * Reducer (sederhana & terpusat)
- * ===========================
- */
-
-type Action =
-  | { type: "pengurus/add"; payload: PengurusBUM }
-  | { type: "pengurus/update"; index: number; payload: PengurusBUM }
-  | { type: "pengurus/remove"; index: number }
-  | { type: "skPengawas/add"; payload: SKPengawas }
-  | { type: "skPengawas/update"; index: number; payload: SKPengawas }
-  | { type: "skPengawas/remove"; index: number }
-  | { type: "skDirektur/add"; payload: SKDirektur }
-  | { type: "skDirektur/update"; index: number; payload: SKDirektur }
-  | { type: "skDirektur/remove"; index: number }
-  | { type: "skPegawai/add"; payload: SKPegawai }
-  | { type: "skPegawai/update"; index: number; payload: SKPegawai }
-  | { type: "skPegawai/remove"; index: number }
-  | { type: "skPengurus/add"; payload: SKPengurus }
-  | { type: "skPengurus/update"; index: number; payload: SKPengurus }
-  | { type: "skPengurus/remove"; index: number }
-  | { type: "ba/add"; payload: BeritaAcaraBUM }
-  | { type: "ba/update"; index: number; payload: BeritaAcaraBUM }
-  | { type: "ba/remove"; index: number }
-  | { type: "reset" };
-
-function dataReducer(state: StukturState, action: Action): StukturState {
-  switch (action.type) {
-    case "pengurus/add":
-      return { ...state, pengurus: [...state.pengurus, action.payload] };
-    case "pengurus/update":
-      return {
-        ...state,
-        pengurus: state.pengurus.map((p, i) =>
-          i === action.index ? action.payload : p
-        ),
-      };
-    case "pengurus/remove":
-      return {
-        ...state,
-        pengurus: state.pengurus.filter((_, i) => i !== action.index),
-      };
-
-    case "skPengawas/add":
-      return { ...state, skPengawas: [...state.skPengawas, action.payload] };
-    case "skPengawas/update":
-      return {
-        ...state,
-        skPengawas: state.skPengawas.map((s, i) =>
-          i === action.index ? action.payload : s
-        ),
-      };
-    case "skPengawas/remove":
-      return {
-        ...state,
-        skPengawas: state.skPengawas.filter((_, i) => i !== action.index),
-      };
-
-    case "skDirektur/add":
-      return { ...state, skDirektur: [...state.skDirektur, action.payload] };
-    case "skDirektur/update":
-      return {
-        ...state,
-        skDirektur: state.skDirektur.map((s, i) =>
-          i === action.index ? action.payload : s
-        ),
-      };
-    case "skDirektur/remove":
-      return {
-        ...state,
-        skDirektur: state.skDirektur.filter((_, i) => i !== action.index),
-      };
-
-    case "skPegawai/add":
-      return { ...state, skPegawai: [...state.skPegawai, action.payload] };
-    case "skPegawai/update":
-      return {
-        ...state,
-        skPegawai: state.skPegawai.map((s, i) =>
-          i === action.index ? action.payload : s
-        ),
-      };
-    case "skPegawai/remove":
-      return {
-        ...state,
-        skPegawai: state.skPegawai.filter((_, i) => i !== action.index),
-      };
-
-    case "skPengurus/add":
-      return { ...state, skPengurus: [...state.skPengurus, action.payload] };
-    case "skPengurus/update":
-      return {
-        ...state,
-        skPengurus: state.skPengurus.map((s, i) =>
-          i === action.index ? action.payload : s
-        ),
-      };
-    case "skPengurus/remove":
-      return {
-        ...state,
-        skPengurus: state.skPengurus.filter((_, i) => i !== action.index),
-      };
-
-    case "ba/add":
-      return { ...state, beritaAcara: [...state.beritaAcara, action.payload] };
-    case "ba/update":
-      return {
-        ...state,
-        beritaAcara: state.beritaAcara.map((b, i) =>
-          i === action.index ? action.payload : b
-        ),
-      };
-    case "ba/remove":
-      return {
-        ...state,
-        beritaAcara: state.beritaAcara.filter((_, i) => i !== action.index),
-      };
-
-    case "reset":
-      return INITIAL;
-
-    default:
-      return state;
-  }
-}
 
 /**
  * ===========================
@@ -231,7 +40,7 @@ function dataReducer(state: StukturState, action: Action): StukturState {
  */
 
 export default function StrukturTab() {
-  const [state, dispatch] = useReducer(dataReducer, INITIAL);
+  const { strukturState: state, strukturDispatch: dispatch } = useDashboard();
 
   // Modal flags
   const [openPengurus, setOpenPengurus] = useState(false);
@@ -1142,7 +951,7 @@ export default function StrukturTab() {
 
       {/* Save */}
       <div className="col-span-full flex justify-end">
-        <Button onClick={onSave}>Simpan</Button>
+        <Button onClick={onSave}>Update</Button>
       </div>
 
       {/* ---- Modals ---------------------------------------------------------- */}
