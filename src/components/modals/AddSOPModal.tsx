@@ -148,10 +148,11 @@ export default function AddSOPModal({
       <UploadDokumenModal
         open={openUpload}
         onClose={() => setOpenUpload(false)}
-        onSave={(uploaded) => {
-          setFile(uploaded);
+        onUpload={(file) => {
+          setFile(file.name);
           setOpenUpload(false);
         }}
+        currentFileName={file && file !== "-" ? file : undefined}
       />
     </>
   );

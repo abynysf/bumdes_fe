@@ -175,18 +175,20 @@ export default function AddRapatInternalModal({
       <UploadDokumenModal
         open={openUploadNotulen}
         onClose={() => setOpenUploadNotulen(false)}
-        onSave={(uploaded) => {
-          setUploadNotulen(uploaded);
+        onUpload={(file) => {
+          setUploadNotulen(file.name);
           setOpenUploadNotulen(false);
         }}
+        currentFileName={uploadNotulen && uploadNotulen !== "-" ? uploadNotulen : undefined}
       />
       <UploadDokumenModal
         open={openUploadDok}
         onClose={() => setOpenUploadDok(false)}
-        onSave={(uploaded) => {
-          setDokumentasi(uploaded);
+        onUpload={(file) => {
+          setDokumentasi(file.name);
           setOpenUploadDok(false);
         }}
+        currentFileName={dokumentasi && dokumentasi !== "-" ? dokumentasi : undefined}
       />
     </>
   );

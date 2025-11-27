@@ -1,5 +1,5 @@
 import { useState, useCallback, type FormEvent } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { useToast } from "../contexts/ToastContext";
@@ -47,10 +47,6 @@ export default function Login() {
     },
     [email, password, rememberMe, login, navigate, showToast]
   );
-
-  const handleForgotPassword = useCallback(() => {
-    showToast("info", "Forgot password feature coming soon");
-  }, [showToast]);
 
   const handleGoogleSignIn = useCallback(() => {
     showToast("info", "Google sign-in feature coming soon");
@@ -127,14 +123,12 @@ export default function Login() {
                 <span className="text-sm text-neutral-700">Remember me?</span>
               </label>
 
-              <button
-                type="button"
-                onClick={handleForgotPassword}
-                disabled={isLoading}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline disabled:opacity-50"
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
               >
-                Forgot Password
-              </button>
+                Lupa Password?
+              </Link>
             </div>
 
             {/* Sign In Button */}

@@ -798,8 +798,8 @@ export default function ProfileTab() {
       <UploadDokumenModal
         open={openUploadSK}
         onClose={() => setOpenUploadSK(false)}
-        onSave={(uploaded) => {
-          dispatch({ type: "sk/set", payload: uploaded });
+        onUpload={(file) => {
+          dispatch({ type: "sk/set", payload: file.name });
           setOpenUploadSK(false);
         }}
       />

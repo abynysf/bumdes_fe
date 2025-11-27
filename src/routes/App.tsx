@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import ProtectedRoute from "../components/ProtectedRoute";
 import Login from "../pages/Login";
+import ForgotPassword from "../pages/ForgotPassword";
 import Dashboard from "../pages/Dashboard";
 import ProfileTab from "../pages/dashboard/ProfileTab";
 import StrukturTab from "../pages/dashboard/StrukturTab";
@@ -37,6 +38,9 @@ export default function AppRouter() {
         <Routes>
           {/* Login page - public route */}
           <Route path="/login" element={<Login />} />
+
+          {/* Forgot password page - public route */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           {/* Root redirect - checks auth status */}
           <Route path="/" element={<RootRedirect />} />

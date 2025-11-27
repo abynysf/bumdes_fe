@@ -176,18 +176,20 @@ export default function AddMusyawarahDesaModal({
       <UploadDokumenModal
         open={openUploadBerita}
         onClose={() => setOpenUploadBerita(false)}
-        onSave={(uploaded) => {
-          setUploadBeritaAcara(uploaded);
+        onUpload={(file) => {
+          setUploadBeritaAcara(file.name);
           setOpenUploadBerita(false);
         }}
+        currentFileName={uploadBeritaAcara && uploadBeritaAcara !== "-" ? uploadBeritaAcara : undefined}
       />
       <UploadDokumenModal
         open={openUploadDok}
         onClose={() => setOpenUploadDok(false)}
-        onSave={(uploaded) => {
-          setDokumentasi(uploaded);
+        onUpload={(file) => {
+          setDokumentasi(file.name);
           setOpenUploadDok(false);
         }}
+        currentFileName={dokumentasi && dokumentasi !== "-" ? dokumentasi : undefined}
       />
     </>
   );

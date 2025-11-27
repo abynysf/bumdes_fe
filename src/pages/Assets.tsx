@@ -579,7 +579,7 @@ export default function Assets() {
           <Topbar onMenuClick={() => setSidebarOpen(true)} />
 
           <main>
-            <section className="bg-white p-6">
+            <section className="min-h-screen bg-white p-6">
               {/* Header Card with Total */}
               <div className="mb-6 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 p-8 shadow-lg">
                 <div className="flex items-center justify-between">

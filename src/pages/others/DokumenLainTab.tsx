@@ -8,7 +8,8 @@ import DatePicker from "../../components/ui/DatePicker";
 import Modal from "../../components/ui/Modal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import { useToast } from "../../contexts/ToastContext";
-import UploadDokumenLainModal from "../../components/modals/UploadDokumenLainModal";
+import UploadDokumenModal from "../../components/modals/UploadDokumenModal";
+import { Eye, Download, Trash2 } from "lucide-react";
 
 export default function DokumenLainTab() {
   const { dokumenLain, setDokumenLain } = useOthers();
@@ -102,7 +103,8 @@ export default function DokumenLainTab() {
     },
     {
       header: "FILE",
-      accessor: (doc: DokumenLain) => (
+      accessor: "fileName",
+      cell: (doc: DokumenLain) => (
         <a
           href={doc.fileUrl}
           target="_blank"
@@ -117,32 +119,36 @@ export default function DokumenLainTab() {
     },
     {
       header: "AKSI",
-      accessor: (doc: DokumenLain) => (
-        <div className="flex gap-2 justify-center">
-          <Button
-            variant="primary"
-            size="sm"
+      accessor: () => null,
+      cell: (doc: DokumenLain) => (
+        <div className="flex gap-1 justify-center">
+          <button
+            type="button"
             onClick={() => handlePreview(doc)}
+            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+            title="Lihat"
           >
-            Lihat
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
+            <Eye className="h-4 w-4 text-blue-600" />
+          </button>
+          <button
+            type="button"
             onClick={() => handleDownload(doc)}
+            className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+            title="Unduh"
           >
-            Unduh
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
+            <Download className="h-4 w-4 text-emerald-600" />
+          </button>
+          <button
+            type="button"
             onClick={() => handleDeleteClick(doc.id)}
+            className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
+            title="Hapus"
           >
-            Hapus
-          </Button>
+            <Trash2 className="h-4 w-4 text-red-600" />
+          </button>
         </div>
       ),
-      width: "w-64",
+      width: "w-32",
       align: "center",
     },
   ];
@@ -210,7 +216,7 @@ export default function DokumenLainTab() {
       </div>
 
       {/* Upload Modal */}
-      <UploadDokumenLainModal
+      <UploadDokumenModal
         open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         onUpload={handleFileUpload}

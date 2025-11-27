@@ -197,10 +197,11 @@ export default function AddHasilMusdesModal({
       <UploadDokumenModal
         open={openUpload}
         onClose={() => setOpenUpload(false)}
-        onSave={(uploaded) => {
-          setBuktiPad(uploaded);
+        onUpload={(file) => {
+          setBuktiPad(file.name);
           setOpenUpload(false);
         }}
+        currentFileName={buktiPad && buktiPad !== "-" ? buktiPad : undefined}
       />
     </>
   );

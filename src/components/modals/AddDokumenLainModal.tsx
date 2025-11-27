@@ -3,7 +3,7 @@ import Modal from "../ui/Modal";
 import TextInput from "../ui/TextInput";
 import DatePicker from "../ui/DatePicker";
 import Button from "../ui/Button";
-import UploadDokumenLainModal from "./UploadDokumenLainModal";
+import UploadDokumenModal from "./UploadDokumenModal";
 
 export type DokumenLainPayload = {
   namaDokumen: string;
@@ -142,7 +142,7 @@ export default function AddDokumenLainModal({
         </form>
       </Modal>
 
-      <UploadDokumenLainModal
+      <UploadDokumenModal
         open={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
         onUpload={handleFileUpload}

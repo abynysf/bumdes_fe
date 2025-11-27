@@ -5,6 +5,7 @@ import { Table, type Column } from "../../components/ui/Table";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import UploadBox from "../../components/ui/UploadBox";
+import { Eye, Download, Upload } from "lucide-react";
 
 export default function KetahananPanganTab() {
   const { ketahananPanganInfo, ketahananPanganDocuments, setKetahananPanganDocuments } = useOthers();
@@ -74,35 +75,38 @@ export default function KetahananPanganTab() {
     },
     {
       header: "AKSI",
-      accessor: (doc: KetahananPanganDocument) => (
-        <div className="flex gap-2 justify-center">
-          <Button
-            variant="primary"
-            size="sm"
+      accessor: () => null,
+      cell: (doc: KetahananPanganDocument) => (
+        <div className="flex gap-1 justify-center">
+          <button
+            type="button"
             onClick={() => handlePreview(doc)}
             disabled={!doc.fileUrl}
+            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Lihat"
           >
-            Lihat
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
+            <Eye className="h-4 w-4 text-blue-600" />
+          </button>
+          <button
+            type="button"
             onClick={() => handleDownload(doc)}
             disabled={!doc.fileUrl}
+            className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Unduh"
           >
-            Unduh
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
+            <Download className="h-4 w-4 text-emerald-600" />
+          </button>
+          <button
+            type="button"
             onClick={() => handleUploadClick(doc.id)}
-            className="bg-orange-500 text-white hover:bg-orange-600"
+            className="inline-flex items-center rounded p-1.5 hover:bg-orange-50"
+            title="Upload"
           >
-            Upload
-          </Button>
+            <Upload className="h-4 w-4 text-orange-600" />
+          </button>
         </div>
       ),
-      width: "w-64",
+      width: "w-32",
       align: "center",
     },
     {

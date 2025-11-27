@@ -81,6 +81,10 @@ export function Table<T extends Record<string, unknown>>({
     if (value === null || value === undefined || value === '') {
       return '-';
     }
+    // If value is a React element (JSX from accessor function), return as-is
+    if (typeof value === 'object') {
+      return value as ReactNode;
+    }
     return String(value);
   };
 

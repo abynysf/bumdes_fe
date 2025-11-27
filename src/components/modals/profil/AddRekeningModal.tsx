@@ -168,10 +168,11 @@ export default function AddRekeningModal({ open, onClose, onSave, initialData }:
       <UploadDokumenModal
         open={openUpload}
         onClose={() => setOpenUpload(false)}
-        onSave={(uploaded) => {
-          setFile(uploaded);
+        onUpload={(f) => {
+          setFile(f.name);
           setOpenUpload(false);
         }}
+        currentFileName={file || undefined}
       />
     </>
   );

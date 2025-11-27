@@ -199,18 +199,20 @@ export default function AddLaporanPengawasModal({
       <UploadDokumenModal
         open={openUploadLaporan}
         onClose={() => setOpenUploadLaporan(false)}
-        onSave={(uploaded) => {
-          setFileLaporan(uploaded);
+        onUpload={(file) => {
+          setFileLaporan(file.name);
           setOpenUploadLaporan(false);
         }}
+        currentFileName={fileLaporan && fileLaporan !== "-" ? fileLaporan : undefined}
       />
       <UploadDokumenModal
         open={openUploadDok}
         onClose={() => setOpenUploadDok(false)}
-        onSave={(uploaded) => {
-          setDokumentasi(uploaded);
+        onUpload={(file) => {
+          setDokumentasi(file.name);
           setOpenUploadDok(false);
         }}
+        currentFileName={dokumentasi && dokumentasi !== "-" ? dokumentasi : undefined}
       />
     </>
   );

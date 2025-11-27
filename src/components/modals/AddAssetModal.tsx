@@ -251,10 +251,11 @@ export default function AddAssetModal({
       <UploadDokumenModal
         open={openUpload}
         onClose={() => setOpenUpload(false)}
-        onSave={(uploaded) => {
-          setBuktiPembelian(uploaded);
+        onUpload={(file) => {
+          setBuktiPembelian(file.name);
           setOpenUpload(false);
         }}
+        currentFileName={buktiPembelian || undefined}
       />
     </>
   );
