@@ -32,6 +32,7 @@ type AssetInventaris = {
   hargaPerolehan: number | "";
   umurEkonomis: number | "";
   buktiPembelian: string;
+  buktiPembelianBlob?: string;
 };
 
 type AssetState = {
@@ -241,6 +242,7 @@ export default function Assets() {
         hargaPerolehan: data.hargaPerolehan,
         umurEkonomis: data.umurEkonomis,
         buktiPembelian: data.buktiPembelian || "-",
+        buktiPembelianBlob: data.buktiPembelianBlob,
       };
 
       if (editingIndex !== null) {
@@ -428,14 +430,15 @@ export default function Assets() {
       align: "right",
       cell: (row) => {
         const rowIndex = row._index;
+        const fileUrl = row.buktiPembelianBlob || row.buktiPembelian;
         return (
           <div className="flex justify-end gap-1">
-            {row.buktiPembelian && row.buktiPembelian !== "-" && (
+            {fileUrl && fileUrl !== "-" && (
               <>
                 <button
                   type="button"
                   className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                  onClick={() => handlePreviewFile(row.buktiPembelian)}
+                  onClick={() => handlePreviewFile(fileUrl)}
                   title="Preview"
                   aria-label="Preview file"
                 >
@@ -443,7 +446,7 @@ export default function Assets() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDownloadFile(row.buktiPembelian)}
+                  onClick={() => handleDownloadFile(fileUrl)}
                   className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
                   title="Unduh"
                   aria-label="Unduh dokumen"
@@ -779,6 +782,7 @@ export default function Assets() {
                   hargaPerolehan: state.assets[editingIndex].hargaPerolehan,
                   umurEkonomis: state.assets[editingIndex].umurEkonomis,
                   buktiPembelian: state.assets[editingIndex].buktiPembelian,
+                  buktiPembelianBlob: state.assets[editingIndex].buktiPembelianBlob,
                 }
               : undefined
           }

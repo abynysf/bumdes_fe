@@ -14,6 +14,7 @@ export type AssetPayload = {
   hargaPerolehan: number | "";
   umurEkonomis: number | "";
   buktiPembelian: string;
+  buktiPembelianBlob?: string;
 };
 
 type Props = {
@@ -39,6 +40,7 @@ export default function AddAssetModal({
   const [hargaPerolehan, setHargaPerolehan] = useState<number | "">("");
   const [umurEkonomis, setUmurEkonomis] = useState<number | "">("");
   const [buktiPembelian, setBuktiPembelian] = useState("");
+  const [buktiPembelianBlob, setBuktiPembelianBlob] = useState("");
   const [touched, setTouched] = useState(false);
 
   const [openUpload, setOpenUpload] = useState(false);
@@ -63,6 +65,7 @@ export default function AddAssetModal({
       setHargaPerolehan(initialData.hargaPerolehan ?? "");
       setUmurEkonomis(initialData.umurEkonomis ?? "");
       setBuktiPembelian(initialData.buktiPembelian ?? "");
+      setBuktiPembelianBlob(initialData.buktiPembelianBlob ?? "");
     }
   }, [initialData]);
 
@@ -77,6 +80,7 @@ export default function AddAssetModal({
       setHargaPerolehan("");
       setUmurEkonomis("");
       setBuktiPembelian("");
+      setBuktiPembelianBlob("");
       setTouched(false);
     }
   }, [initialData, open]);
@@ -106,6 +110,7 @@ export default function AddAssetModal({
       hargaPerolehan: hargaPerolehan !== "" ? hargaPerolehan : 0,
       umurEkonomis,
       buktiPembelian: buktiPembelian || "-",
+      buktiPembelianBlob: buktiPembelianBlob || undefined,
     };
     onSave(payload);
 
@@ -118,6 +123,7 @@ export default function AddAssetModal({
     setHargaPerolehan("");
     setUmurEkonomis("");
     setBuktiPembelian("");
+    setBuktiPembelianBlob("");
     setTouched(false);
     onClose();
   }
@@ -252,7 +258,12 @@ export default function AddAssetModal({
         open={openUpload}
         onClose={() => setOpenUpload(false)}
         onUpload={(file) => {
+          // Revoke previous blob URL if exists
+          if (buktiPembelianBlob) {
+            URL.revokeObjectURL(buktiPembelianBlob);
+          }
           setBuktiPembelian(file.name);
+          setBuktiPembelianBlob(URL.createObjectURL(file));
           setOpenUpload(false);
         }}
         currentFileName={buktiPembelian || undefined}
