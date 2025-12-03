@@ -551,7 +551,7 @@ export default function StrukturTab() {
                               <button
                                 type="button"
                                 className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                                onClick={() => handlePreviewFile(d.file)}
+                                onClick={() => handlePreviewFile(d.fileBlob || d.file)}
                                 title="Preview"
                               >
                                 <Eye className="h-4 w-4 text-blue-600" />
@@ -653,7 +653,7 @@ export default function StrukturTab() {
                               <button
                                 type="button"
                                 className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                                onClick={() => handlePreviewFile(d.file)}
+                                onClick={() => handlePreviewFile(d.fileBlob || d.file)}
                                 title="Preview"
                               >
                                 <Eye className="h-4 w-4 text-blue-600" />
@@ -755,7 +755,7 @@ export default function StrukturTab() {
                               <button
                                 type="button"
                                 className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                                onClick={() => handlePreviewFile(d.file)}
+                                onClick={() => handlePreviewFile(d.fileBlob || d.file)}
                                 title="Preview"
                               >
                                 <Eye className="h-4 w-4 text-blue-600" />
@@ -858,7 +858,7 @@ export default function StrukturTab() {
                               <button
                                 type="button"
                                 className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                                onClick={() => handlePreviewFile(d.file)}
+                                onClick={() => handlePreviewFile(d.fileBlob || d.file)}
                                 title="Preview"
                               >
                                 <Eye className="h-4 w-4 text-blue-600" />
@@ -960,7 +960,7 @@ export default function StrukturTab() {
                               <button
                                 type="button"
                                 className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                                onClick={() => handlePreviewFile(d.file)}
+                                onClick={() => handlePreviewFile(d.fileBlob || d.file)}
                                 title="Preview"
                               >
                                 <Eye className="h-4 w-4 text-blue-600" />
@@ -1266,11 +1266,14 @@ export default function StrukturTab() {
             <div className="text-sm text-neutral-600">
               <p className="mb-2">File: {fileToPreview}</p>
               {isUrl(fileToPreview) ? (
-                <iframe
-                  src={getFileUrl(fileToPreview)}
+                <object
+                  data={getFileUrl(fileToPreview)}
+                  type="application/pdf"
                   className="h-[70vh] w-full border"
                   title="Preview dokumen"
-                />
+                >
+                  <p>PDF tidak dapat ditampilkan. <a href={getFileUrl(fileToPreview)} target="_blank" rel="noopener noreferrer">Unduh file</a></p>
+                </object>
               ) : (
                 <p className="text-neutral-500">
                   Pratinjau tidak tersedia. File: {fileToPreview}

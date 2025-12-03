@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { setCookie, getCookieJSON, deleteCookie } from "../utils/cookies";
-import { authApi } from "../utils/api";
+// import { authApi } from "../utils/api"; // Commented for demo mode
 
 // Cookie configuration
 const AUTH_COOKIE_NAME = "auth_session";
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const login = useCallback(
     async (
       email: string,
-      password: string,
+      _password: string, // Prefixed for demo mode (used in API code below)
       rememberMe = false
     ): Promise<boolean> => {
       // === LOCAL FALLBACK MODE (DEMO) ===

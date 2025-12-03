@@ -12,6 +12,7 @@ export type LegalDokumenPayload = {
   nomor?: string;
   nominal?: number | "";
   file: string;
+  fileBlob?: string;
 };
 
 type Props = {
@@ -50,6 +51,7 @@ export default function AddLegalDokumenModal({
   const [nomor, setNomor] = useState("");
   const [nominal, setNominal] = useState<number | "">("");
   const [file, setFile] = useState<string>("");
+  const [fileBlob, setFileBlob] = useState<string>("");
   const [touched, setTouched] = useState(false);
 
   const [openUpload, setOpenUpload] = useState(false);
@@ -69,6 +71,7 @@ export default function AddLegalDokumenModal({
       setNomor(initialData.nomor ?? "");
       setNominal(initialData.nominal ?? "");
       setFile(initialData.file ?? "");
+      setFileBlob(initialData.fileBlob ?? "");
     }
   }, [initialData]);
 
@@ -80,6 +83,7 @@ export default function AddLegalDokumenModal({
       setNomor("");
       setNominal("");
       setFile("");
+      setFileBlob("");
       setTouched(false);
     }
   }, [initialData, open]);
@@ -96,6 +100,7 @@ export default function AddLegalDokumenModal({
       tahun,
       nama,
       file: file || "-",
+      fileBlob: fileBlob || undefined,
       ...(showNomor ? { nomor: nomor || "-" } : {}),
       ...(showNominal ? { nominal: nominal || "" } : {}),
     };
@@ -107,6 +112,7 @@ export default function AddLegalDokumenModal({
     setNomor("");
     setNominal("");
     setFile("");
+    setFileBlob("");
     setTouched(false);
     onClose();
   }
@@ -183,7 +189,12 @@ export default function AddLegalDokumenModal({
         open={openUpload}
         onClose={() => setOpenUpload(false)}
         onUpload={(f) => {
+          // Revoke previous blob URL if exists
+          if (fileBlob) {
+            URL.revokeObjectURL(fileBlob);
+          }
           setFile(f.name);
+          setFileBlob(URL.createObjectURL(f));
           setOpenUpload(false);
         }}
         currentFileName={file || undefined}

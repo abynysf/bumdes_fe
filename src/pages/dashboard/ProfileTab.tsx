@@ -958,11 +958,14 @@ export default function ProfileTab() {
             <div className="text-sm text-neutral-600">
               <p className="mb-2">File: {fileToPreview}</p>
               {getFileUrl(fileToPreview) ? (
-                <iframe
-                  src={getFileUrl(fileToPreview)!}
+                <object
+                  data={getFileUrl(fileToPreview)!}
+                  type="application/pdf"
                   className="h-[70vh] w-full border"
                   title="Preview dokumen"
-                />
+                >
+                  <p>PDF tidak dapat ditampilkan. <a href={getFileUrl(fileToPreview)!} target="_blank" rel="noopener noreferrer">Unduh file</a></p>
+                </object>
               ) : (
                 <p className="text-neutral-500">
                   Pratinjau tidak tersedia. File: {fileToPreview}

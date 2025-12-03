@@ -9,7 +9,7 @@ import {
   type Dispatch,
 } from "react";
 import {
-  pagesApi,
+  // pagesApi, // Commented for demo mode
   type ProfileApiResponse,
   type StrukturApiResponse,
   type LegalitasApiResponse,
@@ -95,6 +95,7 @@ export type SKPengawas = {
   tahun?: string;
   nomor: string;
   file: string;
+  fileBlob?: string;
 };
 
 export type SKDirektur = {
@@ -103,6 +104,7 @@ export type SKDirektur = {
   tahun?: string;
   nomor: string;
   file: string;
+  fileBlob?: string;
 };
 
 export type SKPegawai = {
@@ -111,6 +113,7 @@ export type SKPegawai = {
   tahun?: string;
   nomor: string;
   file: string;
+  fileBlob?: string;
 };
 
 export type SKPengurus = {
@@ -119,6 +122,7 @@ export type SKPengurus = {
   tahun?: string;
   nomor: string;
   file: string;
+  fileBlob?: string;
 };
 
 export type BeritaAcaraBUM = {
@@ -127,6 +131,7 @@ export type BeritaAcaraBUM = {
   tahun?: string;
   nomor: string;
   file: string;
+  fileBlob?: string;
 };
 
 export type StrukturState = {
@@ -171,6 +176,7 @@ export type BaseDokumen = {
   nama: string;
   nominal?: number | "";
   file: string;
+  fileBlob?: string;
 };
 
 export type DokumenART = {
@@ -179,6 +185,7 @@ export type DokumenART = {
   nama: string;
   nominal?: number | "";
   file: string;
+  fileBlob?: string;
 };
 
 export type DokumenPerdesModal = {
@@ -188,6 +195,7 @@ export type DokumenPerdesModal = {
   nomor: string;
   nominal?: number | "";
   file: string;
+  fileBlob?: string;
 };
 
 export type DokumenSimple = {
@@ -195,6 +203,7 @@ export type DokumenSimple = {
   tahun: number;
   nomor: string;
   file: string;
+  fileBlob?: string;
 };
 
 export type DokumenAsetDesa = {
@@ -203,6 +212,7 @@ export type DokumenAsetDesa = {
   nama: string;
   nomor: string;
   file: string;
+  fileBlob?: string;
 };
 
 export type LegalitasState = {
@@ -610,8 +620,8 @@ function normalizeToArray<T>(data: T | T[] | null | undefined): T[] {
   return [data];
 }
 
-// Helper to map API response to frontend state
-function mapProfileApiToState(data: ProfileApiResponse): ProfileState {
+// Helper to map API response to frontend state (exported but unused in demo mode)
+export function mapProfileApiToState(data: ProfileApiResponse): ProfileState {
   const { bumdes, rekening, dokPeraturanDesaPendirianBumdes } = data;
 
   return {
@@ -644,8 +654,8 @@ function mapProfileApiToState(data: ProfileApiResponse): ProfileState {
   };
 }
 
-// Helper to map Struktur API response to frontend state
-function mapStrukturApiToState(data: StrukturApiResponse): StrukturState {
+// Helper to map Struktur API response to frontend state (exported but unused in demo mode)
+export function mapStrukturApiToState(data: StrukturApiResponse): StrukturState {
   // Helper to format period from startPeriodeJabatan/endPeriodeJabatan
   const formatPeriode = (
     startPeriode?: number,
@@ -702,8 +712,8 @@ function mapStrukturApiToState(data: StrukturApiResponse): StrukturState {
   };
 }
 
-// Helper to map Legalitas API response to frontend state
-function mapLegalitasApiToState(data: LegalitasApiResponse): LegalitasState {
+// Helper to map Legalitas API response to frontend state (exported but unused in demo mode)
+export function mapLegalitasApiToState(data: LegalitasApiResponse): LegalitasState {
   // Helper to map single document with nominal (Anggaran Dasar, Anggaran Rumah Tangga)
   const mapSingleWithNominal = (
     dok: LegalitasApiResponse["dokAnggaranDasarBumdes"]
@@ -784,13 +794,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     INITIAL_LEGALITAS
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [originalProfile, setOriginalProfile] =
-    useState<ProfileApiResponse | null>(null);
-  const [originalStruktur, setOriginalStruktur] =
-    useState<StrukturApiResponse | null>(null);
-  const [originalLegalitas, setOriginalLegalitas] =
-    useState<LegalitasApiResponse | null>(null);
+  const [error, _setError] = useState<string | null>(null); // _setError unused in demo mode
+  const [originalProfile, _setOriginalProfile] =
+    useState<ProfileApiResponse | null>(null); // unused in demo mode
+  const [originalStruktur, _setOriginalStruktur] =
+    useState<StrukturApiResponse | null>(null); // unused in demo mode
+  const [originalLegalitas, _setOriginalLegalitas] =
+    useState<LegalitasApiResponse | null>(null); // unused in demo mode
 
   // Fetch data on mount
   useEffect(() => {
@@ -810,7 +820,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
           jumlahPengurus: 5,
           pengurusL: 3,
           pengurusP: 2,
-          skBadanHukumFile: "Prefix Trees and Tries.pdf",
+          skBadanHukumFile: null,
         },
         dokumen: [
           {
@@ -818,7 +828,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             tahun: 2020,
             nama: "Perdes Pendirian BUM Desa",
             nomor: "01/PERDES/2020",
-            file: "Prefix Trees and Tries.pdf",
+            file: undefined,
           },
         ],
         rekening: [
@@ -829,7 +839,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             nomor: "1234567890",
             ketahananPangan: false,
             keterangan: "",
-            file: "Prefix Trees and Tries.pdf",
+            file: undefined,
           },
         ],
       };
@@ -862,7 +872,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             periode: "2020–2025",
             tahun: "2020",
             nomor: "SK/001/2020",
-            file: "Prefix Trees and Tries.pdf",
+            file: "",
           },
         ],
         skDirektur: [
@@ -871,7 +881,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             periode: "2020–2025",
             tahun: "2020",
             nomor: "SK/002/2020",
-            file: "Prefix Trees and Tries.pdf",
+            file: "",
           },
         ],
         skPegawai: [],
@@ -881,7 +891,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             periode: "2020–2025",
             tahun: "2020",
             nomor: "SK/003/2020",
-            file: "Prefix Trees and Tries.pdf",
+            file: "",
           },
         ],
         beritaAcara: [],
@@ -895,7 +905,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             tahun: 2020,
             nama: "Anggaran Dasar BUM Desa",
             nominal: 100000000,
-            file: "Prefix Trees and Tries.pdf",
+            file: "",
           },
         ],
         anggaranRumahTangga: [
@@ -904,7 +914,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             tahun: 2020,
             nama: "ART BUM Desa",
             nominal: 0,
-            file: "Prefix Trees and Tries.pdf",
+            file: "",
           },
         ],
         ahuBadanHukum: [
@@ -912,7 +922,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             id: 1,
             tahun: 2020,
             nomor: "AHU-001234",
-            file: "Prefix Trees and Tries.pdf",
+            file: "",
           },
         ],
         npwp: [
@@ -920,7 +930,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             id: 1,
             tahun: 2020,
             nomor: "12.345.678.9-012.000",
-            file: "Prefix Trees and Tries.pdf",
+            file: "",
           },
         ],
         nib: [
@@ -928,7 +938,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             id: 1,
             tahun: 2021,
             nomor: "1234567890123",
-            file: "Prefix Trees and Tries.pdf",
+            file: "",
           },
         ],
         dokumenAsetDesa: [],
@@ -939,7 +949,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
             nama: "Perdes Penyertaan Modal",
             nomor: "02/PERDES/2020",
             nominal: 50000000,
-            file: "Prefix Trees and Tries.pdf",
+            file: "",
           },
         ],
       };

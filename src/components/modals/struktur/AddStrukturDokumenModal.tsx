@@ -12,6 +12,7 @@ type DocumentData = {
   tahun?: string;
   nomor: string;
   file: string;
+  fileBlob?: string;
 };
 
 type Props = {
@@ -38,6 +39,7 @@ export default function AddStrukturDokumenModal({
   const [tahun, setTahun] = useState<number | "">("");
   const [nomor, setNomor] = useState("");
   const [file, setFile] = useState<string>("");
+  const [fileBlob, setFileBlob] = useState<string>("");
   const [touched, setTouched] = useState(false);
 
   // upload modal visibility
@@ -57,6 +59,7 @@ export default function AddStrukturDokumenModal({
       }
       setNomor(initialData.nomor === "-" ? "" : initialData.nomor);
       setFile(initialData.file === "-" ? "" : initialData.file);
+      setFileBlob(initialData.fileBlob ?? "");
       setTouched(false);
     } else if (open && !initialData) {
       // Reset form when opening for new entry
@@ -65,6 +68,7 @@ export default function AddStrukturDokumenModal({
       setTahun("");
       setNomor("");
       setFile("");
+      setFileBlob("");
       setTouched(false);
     }
   }, [open, initialData, useTahun]);
@@ -83,7 +87,8 @@ export default function AddStrukturDokumenModal({
         id: initialData?.id,
         tahun: tahun.toString(),
         nomor: nomor.trim() || "-",
-        file: file || "-"
+        file: file || "-",
+        fileBlob: fileBlob || undefined,
       });
     } else {
       // Periode range mode validation
@@ -101,7 +106,8 @@ export default function AddStrukturDokumenModal({
         id: initialData?.id,
         periode,
         nomor: nomor.trim() || "-",
-        file: file || "-"
+        file: file || "-",
+        fileBlob: fileBlob || undefined,
       });
     }
   }
@@ -206,7 +212,12 @@ export default function AddStrukturDokumenModal({
         open={openUpload}
         onClose={() => setOpenUpload(false)}
         onUpload={(f) => {
+          // Revoke previous blob URL if exists
+          if (fileBlob) {
+            URL.revokeObjectURL(fileBlob);
+          }
           setFile(f.name);
+          setFileBlob(URL.createObjectURL(f));
           setOpenUpload(false);
         }}
         currentFileName={file || undefined}

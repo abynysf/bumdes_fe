@@ -52,7 +52,7 @@ const INITIAL: AssetState = {
       hargaSatuan: 8000000,
       hargaPerolehan: 24000000,
       umurEkonomis: 48,
-      buktiPembelian: "bukti_komputer.pdf",
+      buktiPembelian: "",
     },
     {
       jenisInventaris: "Printer",
@@ -62,7 +62,7 @@ const INITIAL: AssetState = {
       hargaSatuan: 2500000,
       hargaPerolehan: 5000000,
       umurEkonomis: 36,
-      buktiPembelian: "bukti_printer.pdf",
+      buktiPembelian: "",
     },
     {
       jenisInventaris: "Meja Kerja",
@@ -72,7 +72,7 @@ const INITIAL: AssetState = {
       hargaSatuan: 1500000,
       hargaPerolehan: 7500000,
       umurEkonomis: 60,
-      buktiPembelian: "bukti_meja.pdf",
+      buktiPembelian: "",
     },
     {
       jenisInventaris: "Kursi Kantor",
@@ -82,7 +82,7 @@ const INITIAL: AssetState = {
       hargaSatuan: 750000,
       hargaPerolehan: 7500000,
       umurEkonomis: 48,
-      buktiPembelian: "bukti_kursi.pdf",
+      buktiPembelian: "",
     },
     {
       jenisInventaris: "AC Split",
@@ -92,7 +92,7 @@ const INITIAL: AssetState = {
       hargaSatuan: 5000000,
       hargaPerolehan: 10000000,
       umurEkonomis: 60,
-      buktiPembelian: "bukti_ac.pdf",
+      buktiPembelian: "",
     },
   ],
 };
@@ -109,6 +109,30 @@ function isUrl(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Converts a file path to a URL that can be used for preview/download.
+ * Handles: blob URLs, full URLs, and server paths like "uploads/bukti/..."
+ */
+function getFileUrl(value: string): string | null {
+  if (!value || !value.trim() || value === "-") return null;
+
+  // Blob URLs - use as-is
+  if (value.startsWith("blob:")) return value;
+
+  // Server paths like "uploads/bukti/..." - prepend /api
+  if (value.startsWith("uploads/")) return `/api/${value}`;
+
+  // Full URLs - use as-is
+  try {
+    const url = new URL(value);
+    if (url.protocol && url.host) return value;
+  } catch {
+    // Not a valid URL
+  }
+
+  return null;
 }
 
 function formatCurrency(value: number | "" | undefined): string {
@@ -240,8 +264,9 @@ export default function Assets() {
 
   // File download handlers
   const downloadFile = useCallback((file: string) => {
-    if (isUrl(file)) {
-      window.open(file, "_blank", "noopener,noreferrer");
+    const url = getFileUrl(file);
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
     } else {
       alert("Tidak ada URL. Nama file tersimpan: " + file);
     }
@@ -827,12 +852,15 @@ export default function Assets() {
               </div>
               <div className="text-sm text-neutral-600">
                 <p className="mb-2">File: {fileToPreview}</p>
-                {isUrl(fileToPreview) ? (
-                  <iframe
-                    src={fileToPreview}
+                {getFileUrl(fileToPreview) ? (
+                  <object
+                    data={getFileUrl(fileToPreview)!}
+                    type="application/pdf"
                     className="h-[70vh] w-full border"
                     title="Preview dokumen"
-                  />
+                  >
+                    <p>PDF tidak dapat ditampilkan. <a href={getFileUrl(fileToPreview)!} target="_blank" rel="noopener noreferrer" className="text-emerald-600 hover:underline">Unduh file</a></p>
+                  </object>
                 ) : (
                   <p className="text-neutral-500">
                     Pratinjau tidak tersedia. File: {fileToPreview}
