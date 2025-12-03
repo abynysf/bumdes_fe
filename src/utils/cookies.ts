@@ -9,11 +9,17 @@
  * @param minutes - Expiration time in minutes
  */
 export function setCookie(name: string, value: unknown, minutes: number): void {
-  const date = new Date();
-  date.setTime(date.getTime() + minutes * 60 * 1000);
-  const expires = `expires=${date.toUTCString()}`;
   const stringValue = typeof value === "string" ? value : JSON.stringify(value);
-  document.cookie = `${name}=${encodeURIComponent(stringValue)};${expires};path=/`;
+
+  if (minutes > 0) {
+    const date = new Date();
+    date.setTime(date.getTime() + minutes * 60 * 1000);
+    const expires = `expires=${date.toUTCString()}`;
+    document.cookie = `${name}=${encodeURIComponent(stringValue)};${expires};path=/`;
+  } else {
+    // Session cookie - no expires = deleted when browser closes
+    document.cookie = `${name}=${encodeURIComponent(stringValue)};path=/`;
+  }
 }
 
 /**

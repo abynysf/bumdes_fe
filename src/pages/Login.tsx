@@ -187,11 +187,11 @@ export default function Login() {
             <p className="text-xs text-blue-800">
               <strong>Development Mode:</strong> Use{" "}
               <code className="rounded bg-blue-100 px-1 py-0.5">
-                admin@bumdes.go
+                admin@admin.com
               </code>{" "}
               /{" "}
               <code className="rounded bg-blue-100 px-1 py-0.5">
-                password123
+                Admin123!
               </code>
             </p>
           </div>

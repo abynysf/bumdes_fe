@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import clsx from "clsx";
+import logo from "../../assets/logo.svg";
 import { useDebounce } from "../../hooks";
 import { useState, useCallback } from "react";
 import { useAuth } from "../../contexts/AuthContext";
@@ -81,12 +82,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       <div className="px-5 pt-6 pb-4 sm:pt-8">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="grid aspect-square w-7 grid-cols-2 grid-rows-2 gap-1">
-              <span className="rounded-sm bg-emerald-600/90" />
-              <span className="rounded-sm bg-emerald-600/90" />
-              <span className="rounded-sm bg-emerald-600/90" />
-              <span className="rounded-sm bg-emerald-600/90" />
-            </div>
+            <img src={logo} alt="BUM Desa GO" className="w-7 h-7" />
             <div className="text-lg sm:text-xl font-semibold text-neutral-900">
               BUM Desa GO
             </div>
@@ -158,12 +154,12 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
               <span className="text-emerald-700 font-semibold text-sm">
-                {user?.name?.charAt(0).toUpperCase() || "A"}
+                {user?.displayName?.charAt(0).toUpperCase() || "A"}
               </span>
             </div>
             <div className="min-w-0">
               <div className="text-sm text-emerald-700 font-semibold leading-tight truncate">
-                {user?.name || "Admin"}
+                {user?.displayName || "Admin"}
               </div>
               <div className="text-xs text-neutral-500 leading-tight truncate">
                 {user?.role || "Administrator"}

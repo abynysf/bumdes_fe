@@ -309,52 +309,9 @@ export default function LaporanTahunanTab() {
       align: "right",
       cell: (row) => {
         const rowIndex = row._index;
-        const hasBeritaAcara =
-          row.uploadBeritaAcara && row.uploadBeritaAcara !== "-";
-        const hasDokumentasi = row.dokumentasi && row.dokumentasi !== "-";
 
         return (
           <div className="flex justify-end gap-1">
-            {hasBeritaAcara && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => handlePreviewFile(row.uploadBeritaAcara)}
-                  className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                  title="Preview Berita Acara"
-                >
-                  <Eye className="h-4 w-4 text-blue-600" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => downloadFile(row.uploadBeritaAcara)}
-                  className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
-                  title="Download Berita Acara"
-                >
-                  <Download className="h-4 w-4 text-emerald-600" />
-                </button>
-              </>
-            )}
-            {hasDokumentasi && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => handlePreviewFile(row.dokumentasi)}
-                  className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                  title="Preview Dokumentasi"
-                >
-                  <Eye className="h-4 w-4 text-blue-600" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => downloadFile(row.dokumentasi)}
-                  className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
-                  title="Download Dokumentasi"
-                >
-                  <Download className="h-4 w-4 text-emerald-600" />
-                </button>
-              </>
-            )}
             <button
               type="button"
               onClick={() => {
@@ -377,7 +334,7 @@ export default function LaporanTahunanTab() {
           </div>
         );
       },
-      width: "w-40",
+      width: "w-24",
     },
   ];
 

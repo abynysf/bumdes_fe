@@ -7,8 +7,13 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+
+  // Wait for auth check to complete
+  if (isLoading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     // Redirect to login page, but save the attempted location

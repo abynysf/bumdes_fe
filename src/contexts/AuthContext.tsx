@@ -7,23 +7,20 @@ import {
   type ReactNode,
 } from "react";
 import { setCookie, getCookieJSON, deleteCookie } from "../utils/cookies";
+import { authApi } from "../utils/api";
 
 // Cookie configuration
 const AUTH_COOKIE_NAME = "auth_session";
-const AUTH_COOKIE_DURATION = 5; // minutes
+const AUTH_COOKIE_DURATION = 60; // minutes (increased from 5)
 
-// Mock user credentials
-const MOCK_CREDENTIALS = {
-  email: "admin@bumdes.go",
-  password: "password123",
-};
-
-// User type
+// User type - matches backend API response
 export interface User {
-  id: string;
-  name: string;
+  id: number;
   email: string;
+  displayName: string;
   role: string;
+  desaUid: string | null;
+  kecamatanUid: string | null;
 }
 
 // Auth cookie structure
@@ -36,7 +33,12 @@ interface AuthCookie {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
+  isLoading: boolean;
+  login: (
+    email: string,
+    password: string,
+    rememberMe?: boolean
+  ) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -51,6 +53,7 @@ interface AuthProviderProps {
 // Provider component
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Restore session from cookie on mount
   useEffect(() => {
@@ -61,58 +64,104 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log("🍪 Found auth cookie:", authCookie);
       // Check if cookie is still valid
       if (authCookie.expiresAt && authCookie.expiresAt > Date.now()) {
-        const remainingTime = Math.round((authCookie.expiresAt - Date.now()) / 1000 / 60);
-        console.log(`✅ Cookie is valid! Restoring session. Expires in ${remainingTime} minutes`);
+        const remainingTime = Math.round(
+          (authCookie.expiresAt - Date.now()) / 1000 / 60
+        );
+        console.log(
+          `✅ Cookie is valid! Restoring session. Expires in ${remainingTime} minutes`
+        );
         setUser(authCookie.user);
       } else {
         console.log("❌ Cookie expired, cleaning up");
-        // Cookie expired, clean it up
         deleteCookie(AUTH_COOKIE_NAME);
       }
     } else {
       console.log("ℹ️ No auth cookie found");
     }
+
+    setIsLoading(false);
   }, []);
 
   const login = useCallback(
-    async (email: string, password: string, rememberMe = false): Promise<boolean> => {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
+    async (
+      email: string,
+      password: string,
+      rememberMe = false
+    ): Promise<boolean> => {
+      // === LOCAL FALLBACK MODE (DEMO) ===
+      // Mock login - accepts any credentials
+      const mockUser: User = {
+        id: 1,
+        email: email,
+        displayName: "Demo User",
+        role: "admin",
+        desaUid: "demo-desa",
+        kecamatanUid: "demo-kecamatan",
+      };
 
-      // Check credentials
-      if (
-        email === MOCK_CREDENTIALS.email &&
-        password === MOCK_CREDENTIALS.password
-      ) {
-        // Mock user data
-        const mockUser: User = {
-          id: "1",
-          name: "Admin BUMDesa",
-          email: email,
-          role: "Administrator",
-        };
+      setUser(mockUser);
 
-        setUser(mockUser);
+      const expiresAt = Date.now() + AUTH_COOKIE_DURATION * 60 * 1000;
+      const authCookie: AuthCookie = {
+        user: mockUser,
+        expiresAt,
+      };
 
-        // If "Remember Me" is checked, save to cookie
-        if (rememberMe) {
-          const expiresAt = Date.now() + AUTH_COOKIE_DURATION * 60 * 1000;
-          const authCookie: AuthCookie = {
-            user: mockUser,
-            expiresAt,
-          };
-          setCookie(AUTH_COOKIE_NAME, authCookie, AUTH_COOKIE_DURATION);
-          console.log("✅ Cookie saved with Remember Me - expires in 5 minutes");
-        } else {
-          // Clear any existing cookie if not using Remember Me
-          deleteCookie(AUTH_COOKIE_NAME);
-          console.log("⚠️ Login without Remember Me - no cookie saved");
-        }
-
-        return true;
+      if (rememberMe) {
+        setCookie(AUTH_COOKIE_NAME, authCookie, AUTH_COOKIE_DURATION);
+        console.log("✅ [DEMO] Cookie saved with Remember Me");
+      } else {
+        setCookie(AUTH_COOKIE_NAME, authCookie, 0);
+        console.log("✅ [DEMO] Session cookie saved");
       }
 
-      return false;
+      return true;
+      // === END LOCAL FALLBACK MODE ===
+
+      /* === ORIGINAL API CODE (commented for demo) ===
+      try {
+        const response = await authApi.login(email, password);
+
+        if (response.ok && response.user) {
+          const loggedInUser: User = {
+            id: response.user.id,
+            email: response.user.email,
+            displayName: response.user.displayName,
+            role: response.user.role,
+            desaUid: response.user.desaUid,
+            kecamatanUid: response.user.kecamatanUid,
+          };
+
+          setUser(loggedInUser);
+
+          // Always save session - rememberMe controls duration
+          const expiresAt = Date.now() + AUTH_COOKIE_DURATION * 60 * 1000;
+          const authCookie: AuthCookie = {
+            user: loggedInUser,
+            expiresAt,
+          };
+
+          if (rememberMe) {
+            // Persistent cookie with expiration
+            setCookie(AUTH_COOKIE_NAME, authCookie, AUTH_COOKIE_DURATION);
+            console.log(
+              "✅ Cookie saved with Remember Me - expires in 60 minutes"
+            );
+          } else {
+            // Session cookie - expires when browser closes
+            setCookie(AUTH_COOKIE_NAME, authCookie, 0);
+            console.log("✅ Session cookie saved - expires on browser close");
+          }
+
+          return true;
+        }
+
+        return false;
+      } catch (error) {
+        console.error("Login error:", error);
+        return false;
+      }
+      === END ORIGINAL API CODE === */
     },
     []
   );
@@ -126,6 +175,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
+    isLoading,
     login,
     logout,
   };

@@ -3,9 +3,11 @@ import Modal from "../../ui/Modal";
 import TextInput from "../../ui/TextInput";
 import Button from "../../ui/Button";
 import YearPicker from "../../ui/YearPicker";
+import DatePicker from "../../ui/DatePicker";
 import UploadDokumenModal from "../UploadDokumenModal";
 
 type DocumentData = {
+  id?: number;
   periode?: string;
   tahun?: string;
   nomor: string;
@@ -31,8 +33,8 @@ export default function AddStrukturDokumenModal({
   initialData,
   useTahun = false,
 }: Props) {
-  const [awal, setAwal] = useState<number | "">("");
-  const [akhir, setAkhir] = useState<number | "">("");
+  const [awal, setAwal] = useState<string>("");
+  const [akhir, setAkhir] = useState<string>("");
   const [tahun, setTahun] = useState<number | "">("");
   const [nomor, setNomor] = useState("");
   const [file, setFile] = useState<string>("");
@@ -48,10 +50,10 @@ export default function AddStrukturDokumenModal({
         // Single year mode
         setTahun(parseInt(initialData.tahun, 10) || "");
       } else if (initialData.periode) {
-        // Parse periode string "2020–2025" back to numbers
+        // Parse periode string "2020-01-01–2025-12-31" back to date strings
         const [awalStr, akhirStr] = initialData.periode.split("–");
-        setAwal(awalStr ? parseInt(awalStr, 10) : "");
-        setAkhir(akhirStr ? parseInt(akhirStr, 10) : "");
+        setAwal(awalStr || "");
+        setAkhir(akhirStr || "");
       }
       setNomor(initialData.nomor === "-" ? "" : initialData.nomor);
       setFile(initialData.file === "-" ? "" : initialData.file);
@@ -78,6 +80,7 @@ export default function AddStrukturDokumenModal({
       }
 
       onSave({
+        id: initialData?.id,
         tahun: tahun.toString(),
         nomor: nomor.trim() || "-",
         file: file || "-"
@@ -95,6 +98,7 @@ export default function AddStrukturDokumenModal({
 
       const periode = `${awal}–${akhir}`;
       onSave({
+        id: initialData?.id,
         periode,
         nomor: nomor.trim() || "-",
         file: file || "-"
@@ -128,20 +132,20 @@ export default function AddStrukturDokumenModal({
           ) : (
             <div>
               <div className="flex gap-2">
-                <YearPicker
+                <DatePicker
                   label="Awal Periode"
-                  placeholder="Pilih tahun"
+                  placeholder="Pilih tanggal"
                   required
-                  value={awal === "" ? undefined : awal}
-                  onChange={(y) => setAwal(y ?? "")}
+                  value={awal}
+                  onChange={(date) => setAwal(date || "")}
                   touched={touched}
                 />
-                <YearPicker
+                <DatePicker
                   label="Akhir Periode"
-                  placeholder="Pilih tahun"
+                  placeholder="Pilih tanggal"
                   required
-                  value={akhir === "" ? undefined : akhir}
-                  onChange={(y) => setAkhir(y ?? "")}
+                  value={akhir}
+                  onChange={(date) => setAkhir(date || "")}
                   touched={touched}
                   error={
                     akhir !== "" && awal !== "" && akhir < awal
@@ -153,7 +157,7 @@ export default function AddStrukturDokumenModal({
               <p className="mt-1 text-xs text-neutral-400">
                 Periode tersimpan sebagai:{" "}
                 <span className="font-medium">
-                  {awal && akhir ? `${awal}–${akhir}` : "Belum lengkap"}
+                  {awal && akhir ? `${awal.slice(0, 4)} sampai ${akhir.slice(0, 4)}` : "Belum lengkap"}
                 </span>
               </p>
             </div>

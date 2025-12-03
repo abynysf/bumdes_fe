@@ -5,6 +5,7 @@ import { Download, Eye, Pencil, Trash2 } from "lucide-react";
 import AddPengurusBUMModal from "../../components/modals/struktur/AddPengurusBUMModal";
 import AddStrukturDokumenModal from "../../components/modals/struktur/AddStrukturDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
+import WarningModal from "../../components/modals/WarningModal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import {
   useDashboard,
@@ -23,13 +24,37 @@ import {
  */
 
 function isUrl(value: string): boolean {
-  try {
-    if (!value || !value.trim()) return false;
-    const url = new URL(value);
-    return Boolean(url.protocol && url.host);
-  } catch {
-    return false;
+  // Any non-empty, non-dash value is considered previewable
+  if (!value || !value.trim() || value === "-") return false;
+  return true;
+}
+
+function getFileUrl(file: string): string {
+  if (!file || file === "-") return "";
+  // Blob URLs - return as-is
+  if (file.startsWith("blob:")) return file;
+  // Full URLs - return as-is
+  if (file.startsWith("http://") || file.startsWith("https://")) return file;
+  // Server paths with uploads/ prefix - prepend /api
+  if (file.startsWith("uploads/")) return `/api/${file}`;
+  // Plain filename - assume it's in uploads directory
+  return `/api/uploads/${file}`;
+}
+
+function formatCurrency(value: number | "" | string | undefined): string {
+  if (value === "" || value === undefined) return "-";
+  return "Rp " + new Intl.NumberFormat("id-ID").format(Number(value));
+}
+
+function formatPeriode(periode?: string, tahun?: string): string {
+  if (tahun) return tahun;
+  if (!periode) return "-";
+  // Convert "2025-11-01–2025-11-27" to "2025 sampai 2025"
+  const [awal, akhir] = periode.split("–");
+  if (awal && akhir) {
+    return `${awal.slice(0, 4)} sampai ${akhir.slice(0, 4)}`;
   }
+  return periode;
 }
 
 
@@ -40,7 +65,12 @@ function isUrl(value: string): boolean {
  */
 
 export default function StrukturTab() {
-  const { strukturState: state, strukturDispatch: dispatch } = useDashboard();
+  const {
+    strukturState: state,
+    strukturDispatch: dispatch,
+    isLoading: isDataLoading,
+    saveStruktur,
+  } = useDashboard();
 
   // Modal flags
   const [openPengurus, setOpenPengurus] = useState(false);
@@ -50,6 +80,8 @@ export default function StrukturTab() {
   const [openSKPengurus, setOpenSKPengurus] = useState(false);
   const [openBA, setOpenBA] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Confirm delete states
   const [confirmDeletePengurusOpen, setConfirmDeletePengurusOpen] =
@@ -106,8 +138,9 @@ export default function StrukturTab() {
 
   // Handlers
   const downloadFile = useCallback((file: string) => {
-    if (isUrl(file)) {
-      window.open(file, "_blank", "noopener,noreferrer");
+    const url = getFileUrl(file);
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
     } else {
       alert("Tidak ada URL. Nama file tersimpan: " + file);
     }
@@ -131,13 +164,25 @@ export default function StrukturTab() {
     setPreviewOpen(true);
   }, []);
 
-  const onSave = useCallback(() => {
-    // TODO: ganti dengan API call
-    console.log("[SAVE] profil payload:", state);
-    setSavedOpen(true);
-  }, [state]);
+  const onSave = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const success = await saveStruktur();
+      if (success) {
+        setSavedOpen(true);
+      } else {
+        setShowWarning(true);
+      }
+    } catch (error) {
+      console.error("Save error:", error);
+      setShowWarning(true);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [saveStruktur]);
 
   type PersonDataPayload = {
+    id?: number;
     jabatan?: string;
     unit?: string;
     nama: string;
@@ -151,6 +196,7 @@ export default function StrukturTab() {
   const savePengurus = useCallback(
     (p: PersonDataPayload) => {
       const payload: PengurusBUM = {
+        id: p.id,
         jabatan: p.jabatan ?? "",
         namaPengurus: p.nama,
         pekerjaan: p.pekerjaan,
@@ -327,6 +373,18 @@ export default function StrukturTab() {
     }
   }, [deleteBAIndex]);
 
+  // Show loading spinner while data is being fetched
+  if (isDataLoading) {
+    return (
+      <div className="flex items-center justify-center p-12 min-h-screen bg-white">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent mx-auto mb-2" />
+          <p className="text-neutral-500">Memuat data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-12 gap-6 p-6">
       {/* Main content */}
@@ -396,7 +454,7 @@ export default function StrukturTab() {
                         {p.nomorTelepon}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {p.gaji}
+                        {formatCurrency(p.gaji)}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         {p.keterangan || "-"}
@@ -478,7 +536,7 @@ export default function StrukturTab() {
                       className="text-sm text-neutral-800"
                     >
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {d.periode || d.tahun || "-"}
+                        {formatPeriode(d.periode, d.tahun)}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         {d.nomor}
@@ -580,7 +638,7 @@ export default function StrukturTab() {
                       className="text-sm text-neutral-800"
                     >
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {d.periode || d.tahun || "-"}
+                        {formatPeriode(d.periode, d.tahun)}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         {d.nomor}
@@ -682,7 +740,7 @@ export default function StrukturTab() {
                       className="text-sm text-neutral-800"
                     >
                       <td className="border-b border-neutral-200 px-3 py-2">
-                        {d.periode || d.tahun || "-"}
+                        {formatPeriode(d.periode, d.tahun)}
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         {d.nomor}
@@ -951,7 +1009,9 @@ export default function StrukturTab() {
 
       {/* Save */}
       <div className="col-span-full flex justify-end">
-        <Button onClick={onSave}>Update</Button>
+        <Button onClick={onSave} disabled={isSaving}>
+          {isSaving ? "Menyimpan..." : "Update"}
+        </Button>
       </div>
 
       {/* ---- Modals ---------------------------------------------------------- */}
@@ -969,6 +1029,7 @@ export default function StrukturTab() {
         initialData={
           editingPengurusIndex !== null
             ? {
+                id: state.pengurus[editingPengurusIndex].id,
                 jabatan: state.pengurus[editingPengurusIndex].jabatan,
                 nama: state.pengurus[editingPengurusIndex].namaPengurus,
                 pekerjaan: state.pengurus[editingPengurusIndex].pekerjaan,
@@ -1066,6 +1127,14 @@ export default function StrukturTab() {
         onClose={() => setSavedOpen(false)}
         title="Data Struktur Tersimpan"
         autoCloseMs={1500}
+      />
+
+      <WarningModal
+        open={showWarning}
+        onClose={() => setShowWarning(false)}
+        type="error"
+        title="Gagal Menyimpan"
+        message="Terjadi kesalahan saat menyimpan data. Silakan coba lagi."
       />
 
       {/* Confirm Delete Dialogs */}
@@ -1198,7 +1267,7 @@ export default function StrukturTab() {
               <p className="mb-2">File: {fileToPreview}</p>
               {isUrl(fileToPreview) ? (
                 <iframe
-                  src={fileToPreview}
+                  src={getFileUrl(fileToPreview)}
                   className="h-[70vh] w-full border"
                   title="Preview dokumen"
                 />

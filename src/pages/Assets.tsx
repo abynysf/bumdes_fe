@@ -39,11 +39,62 @@ type AssetState = {
 };
 
 /* ===========================
- * Initials
+ * Initials (LOCAL FALLBACK MODE - Mock Data)
  * =========================== */
 
 const INITIAL: AssetState = {
-  assets: [],
+  assets: [
+    {
+      jenisInventaris: "Komputer",
+      nomorInventaris: "INV-001-2020",
+      tanggalPembelian: 2020,
+      unit: 3,
+      hargaSatuan: 8000000,
+      hargaPerolehan: 24000000,
+      umurEkonomis: 48,
+      buktiPembelian: "bukti_komputer.pdf",
+    },
+    {
+      jenisInventaris: "Printer",
+      nomorInventaris: "INV-002-2020",
+      tanggalPembelian: 2020,
+      unit: 2,
+      hargaSatuan: 2500000,
+      hargaPerolehan: 5000000,
+      umurEkonomis: 36,
+      buktiPembelian: "bukti_printer.pdf",
+    },
+    {
+      jenisInventaris: "Meja Kerja",
+      nomorInventaris: "INV-003-2021",
+      tanggalPembelian: 2021,
+      unit: 5,
+      hargaSatuan: 1500000,
+      hargaPerolehan: 7500000,
+      umurEkonomis: 60,
+      buktiPembelian: "bukti_meja.pdf",
+    },
+    {
+      jenisInventaris: "Kursi Kantor",
+      nomorInventaris: "INV-004-2021",
+      tanggalPembelian: 2021,
+      unit: 10,
+      hargaSatuan: 750000,
+      hargaPerolehan: 7500000,
+      umurEkonomis: 48,
+      buktiPembelian: "bukti_kursi.pdf",
+    },
+    {
+      jenisInventaris: "AC Split",
+      nomorInventaris: "INV-005-2022",
+      tanggalPembelian: 2022,
+      unit: 2,
+      hargaSatuan: 5000000,
+      hargaPerolehan: 10000000,
+      umurEkonomis: 60,
+      buktiPembelian: "bukti_ac.pdf",
+    },
+  ],
 };
 
 /* ===========================

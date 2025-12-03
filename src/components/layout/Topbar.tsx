@@ -192,13 +192,13 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
         <div className="hidden lg:flex items-center gap-3">
           <div className="text-right">
             <div className="text-sm font-semibold text-neutral-800">
-              {user?.name || "Admin"}
+              {user?.displayName || "Admin"}
             </div>
             <div className="text-xs text-neutral-500">{user?.role || "Administrator"}</div>
           </div>
           <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
             <span className="text-emerald-700 font-semibold text-sm">
-              {user?.name?.charAt(0).toUpperCase() || "A"}
+              {user?.displayName?.charAt(0).toUpperCase() || "A"}
             </span>
           </div>
         </div>

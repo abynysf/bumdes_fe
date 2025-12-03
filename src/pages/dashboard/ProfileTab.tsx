@@ -23,14 +23,28 @@ import {
  * Utils
  * =========================== */
 
-function isUrl(value: string): boolean {
+/**
+ * Converts a file path to a URL that can be used for preview/download.
+ * Handles: blob URLs, full URLs, and server paths like "uploads/rekening/..."
+ */
+function getFileUrl(value: string): string | null {
+  if (!value || !value.trim()) return null;
+
+  // Blob URLs - use as-is
+  if (value.startsWith("blob:")) return value;
+
+  // Server paths like "uploads/rekening/..." - prepend /api
+  if (value.startsWith("uploads/")) return `/api/${value}`;
+
+  // Full URLs - use as-is
   try {
-    if (!value || !value.trim()) return false;
     const url = new URL(value);
-    return Boolean(url.protocol && url.host);
+    if (url.protocol && url.host) return value;
   } catch {
-    return false;
+    // Not a valid URL
   }
+
+  return null;
 }
 
 /* ===========================
@@ -43,6 +57,8 @@ export default function ProfileTab() {
     profileDispatch: dispatch,
     strukturState,
     legalitasState,
+    isLoading: isDataLoading,
+    saveProfile,
   } = useDashboard();
 
   // modal flags
@@ -51,6 +67,7 @@ export default function ProfileTab() {
   const [openUploadSK, setOpenUploadSK] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
+  const [warningType, setWarningType] = useState<"validation" | "api">("validation");
 
   // Track if user attempted to submit (for showing validation errors)
   const [touched, setTouched] = useState(false);
@@ -109,8 +126,9 @@ export default function ProfileTab() {
   );
 
   const downloadFile = useCallback((file: string) => {
-    if (isUrl(file)) {
-      window.open(file, "_blank", "noopener,noreferrer");
+    const url = getFileUrl(file);
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
     } else {
       alert("Tidak ada URL. Nama file tersimpan: " + file);
     }
@@ -134,7 +152,9 @@ export default function ProfileTab() {
     setPreviewOpen(true);
   }, []);
 
-  const onSave = useCallback(() => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const onSave = useCallback(async () => {
     // Mark as touched to show validation errors
     setTouched(true);
 
@@ -145,6 +165,7 @@ export default function ProfileTab() {
       state.form.tahunPendirian === "" ||
       !state.form.alamatKantor
     ) {
+      setWarningType("validation");
       setShowWarning(true);
       return;
     }
@@ -154,16 +175,30 @@ export default function ProfileTab() {
       state.form.statusBadanHukum === "terbit" &&
       !state.form.skBadanHukumFile
     ) {
+      setWarningType("validation");
       setShowWarning(true);
       return;
     }
 
-    // TODO: ganti dengan API call
-    console.log("[SAVE] profil payload:", state);
-    setSavedOpen(true);
-    // Reset touched after successful save
-    setTouched(false);
-  }, [state]);
+    // Call API to save
+    setIsSaving(true);
+    try {
+      const success = await saveProfile();
+      if (success) {
+        setSavedOpen(true);
+        setTouched(false);
+      } else {
+        setWarningType("api");
+        setShowWarning(true);
+      }
+    } catch (error) {
+      console.error("Save error:", error);
+      setWarningType("api");
+      setShowWarning(true);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [state, saveProfile]);
 
   const handlePrint = useCallback(() => {
     window.print();
@@ -228,6 +263,18 @@ export default function ProfileTab() {
       setDeleteRekeningIndex(null);
     }
   }, [deleteRekeningIndex]);
+
+  // Show loading spinner while data is being fetched
+  if (isDataLoading) {
+    return (
+      <div className="flex items-center justify-center p-12 min-h-screen bg-white">
+        <div className="text-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent mx-auto mb-2" />
+          <p className="text-neutral-500">Memuat data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -534,11 +581,11 @@ export default function ProfileTab() {
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         <div className="flex justify-end gap-2">
-                          {d.file && (
+                          {(d.fileBlob || d.file) && (
                             <>
                               <button
                                 type="button"
-                                onClick={() => handlePreviewFile(d.file!)}
+                                onClick={() => handlePreviewFile(d.fileBlob || d.file!)}
                                 className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
                                 title="Preview"
                                 aria-label="Preview dokumen"
@@ -548,7 +595,7 @@ export default function ProfileTab() {
 
                               <button
                                 type="button"
-                                onClick={() => handleDownloadFile(d.file!)}
+                                onClick={() => handleDownloadFile(d.fileBlob || d.file!)}
                                 className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
                                 title="Unduh"
                                 aria-label="Unduh dokumen"
@@ -699,12 +746,12 @@ export default function ProfileTab() {
                       </td>
                       <td className="border-b border-neutral-200 px-3 py-2 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          {r.file && (
+                          {(r.fileBlob || r.file) && (
                             <>
                               <button
                                 type="button"
                                 className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                                onClick={() => handlePreviewFile(r.file!)}
+                                onClick={() => handlePreviewFile(r.fileBlob || r.file!)}
                                 title="Preview"
                                 aria-label="Preview file"
                               >
@@ -713,7 +760,7 @@ export default function ProfileTab() {
                               <button
                                 type="button"
                                 className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
-                                onClick={() => handleDownloadFile(r.file!)}
+                                onClick={() => handleDownloadFile(r.fileBlob || r.file!)}
                                 title="Unduh"
                                 aria-label="Unduh file"
                               >
@@ -763,7 +810,9 @@ export default function ProfileTab() {
           <Printer className="h-4 w-4" />
           Cetak
         </button>
-        <Button onClick={onSave}>Update</Button>
+        <Button onClick={onSave} disabled={isSaving}>
+          {isSaving ? "Menyimpan..." : "Update"}
+        </Button>
       </div>
 
       {/* Modals */}
@@ -814,9 +863,13 @@ export default function ProfileTab() {
       <WarningModal
         open={showWarning}
         onClose={() => setShowWarning(false)}
-        type="warning"
-        title="Data Belum Lengkap"
-        message="Mohon lengkapi data wajib sebelum menyimpan."
+        type={warningType === "api" ? "error" : "warning"}
+        title={warningType === "api" ? "Gagal Menyimpan" : "Data Belum Lengkap"}
+        message={
+          warningType === "api"
+            ? "Terjadi kesalahan saat menyimpan data. Silakan coba lagi."
+            : "Mohon lengkapi data wajib sebelum menyimpan."
+        }
       />
 
       {/* Confirm Delete Dialogs */}
@@ -904,9 +957,9 @@ export default function ProfileTab() {
             </div>
             <div className="text-sm text-neutral-600">
               <p className="mb-2">File: {fileToPreview}</p>
-              {isUrl(fileToPreview) ? (
+              {getFileUrl(fileToPreview) ? (
                 <iframe
-                  src={fileToPreview}
+                  src={getFileUrl(fileToPreview)!}
                   className="h-[70vh] w-full border"
                   title="Preview dokumen"
                 />

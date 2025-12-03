@@ -4,6 +4,7 @@ import DataCard from "../../components/ui/DataCard";
 import { Download, Eye, Pencil, Trash2 } from "lucide-react";
 import AddAnggaranModal from "../../components/modals/legalitas/AddLegalDokumenModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
+import WarningModal from "../../components/modals/WarningModal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import {
   useDashboard,
@@ -20,13 +21,21 @@ import {
  * ===========================
  */
 function isUrl(value: string): boolean {
-  try {
-    if (!value || !value.trim()) return false;
-    const url = new URL(value);
-    return Boolean(url.protocol && url.host);
-  } catch {
-    return false;
-  }
+  // Any non-empty, non-dash value is considered previewable
+  if (!value || !value.trim() || value === "-") return false;
+  return true;
+}
+
+function getFileUrl(file: string): string {
+  if (!file || file === "-") return "";
+  // Blob URLs - return as-is
+  if (file.startsWith("blob:")) return file;
+  // Full URLs - return as-is
+  if (file.startsWith("http://") || file.startsWith("https://")) return file;
+  // Server paths with uploads/ prefix - prepend /api
+  if (file.startsWith("uploads/")) return `/api/${file}`;
+  // Plain filename - assume it's in uploads directory
+  return `/api/uploads/${file}`;
 }
 
 function formatCurrency(value: number | "" | undefined): string {
@@ -36,14 +45,17 @@ function formatCurrency(value: number | "" | undefined): string {
   return "Rp" + Intl.NumberFormat("id-ID").format(Number(value));
 }
 
-
 /**
  * ===========================
  * Component
  * ===========================
  */
 export default function LegalitasTab() {
-  const { legalitasState: state, legalitasDispatch: dispatch } = useDashboard();
+  const {
+    legalitasState: state,
+    legalitasDispatch: dispatch,
+    saveLegalitas,
+  } = useDashboard();
 
   // Modal flags
   const [openAD, setOpenAD] = useState(false);
@@ -62,7 +74,9 @@ export default function LegalitasTab() {
   const [editingNPWPIndex, setEditingNPWPIndex] = useState<number | null>(null);
   const [editingNIBIndex, setEditingNIBIndex] = useState<number | null>(null);
   const [editingAsetIndex, setEditingAsetIndex] = useState<number | null>(null);
-  const [editingPerdesIndex, setEditingPerdesIndex] = useState<number | null>(null);
+  const [editingPerdesIndex, setEditingPerdesIndex] = useState<number | null>(
+    null
+  );
 
   // Download confirmation and preview modals
   const [downloadConfirmOpen, setDownloadConfirmOpen] = useState(false);
@@ -84,11 +98,18 @@ export default function LegalitasTab() {
   const [confirmDeleteAsetOpen, setConfirmDeleteAsetOpen] = useState(false);
   const [deleteAsetIndex, setDeleteAsetIndex] = useState<number | null>(null);
   const [confirmDeletePerdesOpen, setConfirmDeletePerdesOpen] = useState(false);
-  const [deletePerdesIndex, setDeletePerdesIndex] = useState<number | null>(null);
+  const [deletePerdesIndex, setDeletePerdesIndex] = useState<number | null>(
+    null
+  );
+
+  // Saving state
+  const [isSaving, setIsSaving] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
 
   const downloadFile = useCallback((file: string) => {
     if (isUrl(file)) {
-      window.open(file, "_blank", "noopener,noreferrer");
+      const url = getFileUrl(file);
+      window.open(url, "_blank", "noopener,noreferrer");
     } else {
       alert("Tidak ada URL. Nama file tersimpan: " + file);
     }
@@ -112,15 +133,27 @@ export default function LegalitasTab() {
     setPreviewOpen(true);
   }, []);
 
-  const onSave = useCallback(() => {
-    // TODO: ganti dengan API call
-    console.log("[SAVE] profil payload:", state);
-    setSavedOpen(true);
-  }, [state]);
+  const onSave = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const success = await saveLegalitas();
+      if (success) {
+        setSavedOpen(true);
+      } else {
+        setShowWarning(true);
+      }
+    } catch (error) {
+      console.error("Save legalitas error:", error);
+      setShowWarning(true);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [saveLegalitas]);
 
   // Helpers menerima hasil dari modal
   // Define the LegalDokumenPayload type (adjust fields as needed)
   type LegalDokumenPayload = {
+    id?: number;
     tahun: number;
     nama: string;
     nominal?: number | "";
@@ -128,114 +161,143 @@ export default function LegalitasTab() {
     nomor?: string;
   };
 
-  const saveAD = useCallback((d: LegalDokumenPayload) => {
-    const payload: BaseDokumen = {
-      tahun: d.tahun,
-      nama: d.nama,
-      nominal: d.nominal ?? "",
-      file: d.file,
-    };
-    if (editingADIndex !== null) {
-      dispatch({ type: "ad/update", index: editingADIndex, payload });
-      setEditingADIndex(null);
-    } else {
-      dispatch({ type: "ad/add", payload });
-    }
-    setOpenAD(false);
-  }, [editingADIndex]);
+  const saveAD = useCallback(
+    (d: LegalDokumenPayload) => {
+      const payload: BaseDokumen = {
+        id: d.id,
+        tahun: d.tahun,
+        nama: d.nama,
+        nominal: d.nominal ?? "",
+        file: d.file,
+      };
+      if (editingADIndex !== null) {
+        dispatch({ type: "ad/update", index: editingADIndex, payload });
+        setEditingADIndex(null);
+      } else {
+        dispatch({ type: "ad/add", payload });
+      }
+      setOpenAD(false);
+    },
+    [editingADIndex, dispatch]
+  );
 
-  const saveART = useCallback((d: LegalDokumenPayload) => {
-    const payload: DokumenART = {
-      tahun: d.tahun,
-      nama: d.nama,
-      nominal: d.nominal ?? "",
-      file: d.file,
-    };
-    if (editingARTIndex !== null) {
-      dispatch({ type: "art/update", index: editingARTIndex, payload });
-      setEditingARTIndex(null);
-    } else {
-      dispatch({ type: "art/add", payload });
-    }
-    setOpenART(false);
-  }, [editingARTIndex]);
+  const saveART = useCallback(
+    (d: LegalDokumenPayload) => {
+      const payload: DokumenART = {
+        id: d.id,
+        tahun: d.tahun,
+        nama: d.nama,
+        nominal: d.nominal ?? "",
+        file: d.file,
+      };
+      if (editingARTIndex !== null) {
+        dispatch({ type: "art/update", index: editingARTIndex, payload });
+        setEditingARTIndex(null);
+      } else {
+        dispatch({ type: "art/add", payload });
+      }
+      setOpenART(false);
+    },
+    [editingARTIndex, dispatch]
+  );
 
-  const saveAHU = useCallback((d: LegalDokumenPayload) => {
-    const payload: DokumenSimple = {
-      tahun: d.tahun,
-      nomor: d.nomor ?? "",
-      file: d.file,
-    };
-    if (editingAHUIndex !== null) {
-      dispatch({ type: "ahu/update", index: editingAHUIndex, payload });
-      setEditingAHUIndex(null);
-    } else {
-      dispatch({ type: "ahu/add", payload });
-    }
-    setOpenAHU(false);
-  }, [editingAHUIndex]);
+  const saveAHU = useCallback(
+    (d: LegalDokumenPayload) => {
+      const payload: DokumenSimple = {
+        id: d.id,
+        tahun: d.tahun,
+        nomor: d.nomor ?? "",
+        file: d.file,
+      };
+      if (editingAHUIndex !== null) {
+        dispatch({ type: "ahu/update", index: editingAHUIndex, payload });
+        setEditingAHUIndex(null);
+      } else {
+        dispatch({ type: "ahu/add", payload });
+      }
+      setOpenAHU(false);
+    },
+    [editingAHUIndex, dispatch]
+  );
 
-  const saveNPWP = useCallback((d: LegalDokumenPayload) => {
-    const payload: DokumenSimple = {
-      tahun: d.tahun,
-      nomor: d.nomor ?? "",
-      file: d.file,
-    };
-    if (editingNPWPIndex !== null) {
-      dispatch({ type: "npwp/update", index: editingNPWPIndex, payload });
-      setEditingNPWPIndex(null);
-    } else {
-      dispatch({ type: "npwp/add", payload });
-    }
-    setOpenNPWP(false);
-  }, [editingNPWPIndex]);
+  const saveNPWP = useCallback(
+    (d: LegalDokumenPayload) => {
+      const payload: DokumenSimple = {
+        id: d.id,
+        tahun: d.tahun,
+        nomor: d.nomor ?? "",
+        file: d.file,
+      };
+      if (editingNPWPIndex !== null) {
+        dispatch({ type: "npwp/update", index: editingNPWPIndex, payload });
+        setEditingNPWPIndex(null);
+      } else {
+        dispatch({ type: "npwp/add", payload });
+      }
+      setOpenNPWP(false);
+    },
+    [editingNPWPIndex, dispatch]
+  );
 
-  const saveNIB = useCallback((d: LegalDokumenPayload) => {
-    const payload: DokumenSimple = {
-      tahun: d.tahun,
-      nomor: d.nomor ?? "",
-      file: d.file,
-    };
-    if (editingNIBIndex !== null) {
-      dispatch({ type: "nib/update", index: editingNIBIndex, payload });
-      setEditingNIBIndex(null);
-    } else {
-      dispatch({ type: "nib/add", payload });
-    }
-    setOpenNIB(false);
-  }, [editingNIBIndex]);
+  const saveNIB = useCallback(
+    (d: LegalDokumenPayload) => {
+      const payload: DokumenSimple = {
+        id: d.id,
+        tahun: d.tahun,
+        nomor: d.nomor ?? "",
+        file: d.file,
+      };
+      if (editingNIBIndex !== null) {
+        dispatch({ type: "nib/update", index: editingNIBIndex, payload });
+        setEditingNIBIndex(null);
+      } else {
+        dispatch({ type: "nib/add", payload });
+      }
+      setOpenNIB(false);
+    },
+    [editingNIBIndex, dispatch]
+  );
 
-  const saveAset = useCallback((d: LegalDokumenPayload) => {
-    const payload: DokumenAsetDesa = {
-      tahun: d.tahun,
-      nama: d.nama,
-      file: d.file,
-    };
-    if (editingAsetIndex !== null) {
-      dispatch({ type: "aset/update", index: editingAsetIndex, payload });
-      setEditingAsetIndex(null);
-    } else {
-      dispatch({ type: "aset/add", payload });
-    }
-    setOpenAset(false);
-  }, [editingAsetIndex]);
+  const saveAset = useCallback(
+    (d: LegalDokumenPayload) => {
+      const payload: DokumenAsetDesa = {
+        id: d.id,
+        tahun: d.tahun,
+        nama: d.nama,
+        nomor: d.nomor ?? "",
+        file: d.file,
+      };
+      if (editingAsetIndex !== null) {
+        dispatch({ type: "aset/update", index: editingAsetIndex, payload });
+        setEditingAsetIndex(null);
+      } else {
+        dispatch({ type: "aset/add", payload });
+      }
+      setOpenAset(false);
+    },
+    [editingAsetIndex, dispatch]
+  );
 
-  const savePerdes = useCallback((d: LegalDokumenPayload) => {
-    const payload: DokumenPerdesModal = {
-      tahun: d.tahun,
-      nama: d.nama,
-      nomor: d.nomor ?? "",
-      nominal: d.nominal ?? "",
-      file: d.file,
-    };
-    if (editingPerdesIndex !== null) {
-      dispatch({ type: "perdes/update", index: editingPerdesIndex, payload });
-      setEditingPerdesIndex(null);
-    } else {
-      dispatch({ type: "perdes/add", payload });
-    }
-    setOpenPerdes(false);
-  }, [editingPerdesIndex]);
+  const savePerdes = useCallback(
+    (d: LegalDokumenPayload) => {
+      const payload: DokumenPerdesModal = {
+        id: d.id,
+        tahun: d.tahun,
+        nama: d.nama,
+        nomor: d.nomor ?? "",
+        nominal: d.nominal ?? "",
+        file: d.file,
+      };
+      if (editingPerdesIndex !== null) {
+        dispatch({ type: "perdes/update", index: editingPerdesIndex, payload });
+        setEditingPerdesIndex(null);
+      } else {
+        dispatch({ type: "perdes/add", payload });
+      }
+      setOpenPerdes(false);
+    },
+    [editingPerdesIndex, dispatch]
+  );
 
   // Delete handlers
   const handleDeleteAD = useCallback((index: number) => {
@@ -587,41 +649,84 @@ export default function LegalitasTab() {
             <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
-                  <th className="border-b border-neutral-200 px-3 py-3">Tahun</th>
-                  <th className="border-b border-neutral-200 px-3 py-3">Nomor</th>
-                  <th className="border-b border-neutral-200 px-3 py-3">File</th>
-                  <th className="border-b border-neutral-200 px-3 py-3 text-right">Aksi</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Tahun
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nomor
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    File
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">
+                    Aksi
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {state.ahuBadanHukum.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-3 py-4 text-center text-sm text-neutral-400">
+                    <td
+                      colSpan={4}
+                      className="px-3 py-4 text-center text-sm text-neutral-400"
+                    >
                       Tidak ada data yang ditambahkan
                     </td>
                   </tr>
                 ) : (
                   state.ahuBadanHukum.map((d, i) => (
-                    <tr key={`${d.nomor}-${d.tahun}-${i}`} className="text-sm text-neutral-800">
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.tahun}</td>
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.nomor}</td>
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.file}</td>
+                    <tr
+                      key={`${d.nomor}-${d.tahun}-${i}`}
+                      className="text-sm text-neutral-800"
+                    >
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.tahun}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.nomor}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.file}
+                      </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         <div className="flex justify-end gap-1">
                           {d.file && d.file !== "-" && (
                             <>
-                              <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" onClick={() => handlePreviewFile(d.file)} title="Preview">
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                onClick={() => handlePreviewFile(d.file)}
+                                title="Preview"
+                              >
                                 <Eye className="h-4 w-4 text-blue-600" />
                               </button>
-                              <button type="button" onClick={() => handleDownloadFile(d.file)} className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50" title="Unduh">
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadFile(d.file)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                title="Unduh"
+                              >
                                 <Download className="h-4 w-4 text-emerald-600" />
                               </button>
                             </>
                           )}
-                          <button type="button" onClick={() => { setEditingAHUIndex(i); setOpenAHU(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingAHUIndex(i);
+                              setOpenAHU(true);
+                            }}
+                            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                            title="Edit"
+                          >
                             <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
-                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => handleDeleteAHU(i)} title="Hapus">
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
+                            onClick={() => handleDeleteAHU(i)}
+                            title="Hapus"
+                          >
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
@@ -647,41 +752,84 @@ export default function LegalitasTab() {
             <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
-                  <th className="border-b border-neutral-200 px-3 py-3">Tahun</th>
-                  <th className="border-b border-neutral-200 px-3 py-3">Nomor</th>
-                  <th className="border-b border-neutral-200 px-3 py-3">File</th>
-                  <th className="border-b border-neutral-200 px-3 py-3 text-right">Aksi</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Tahun
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nomor
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    File
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">
+                    Aksi
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {state.npwp.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-3 py-4 text-center text-sm text-neutral-400">
+                    <td
+                      colSpan={4}
+                      className="px-3 py-4 text-center text-sm text-neutral-400"
+                    >
                       Tidak ada data yang ditambahkan
                     </td>
                   </tr>
                 ) : (
                   state.npwp.map((d, i) => (
-                    <tr key={`${d.nomor}-${d.tahun}-${i}`} className="text-sm text-neutral-800">
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.tahun}</td>
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.nomor}</td>
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.file}</td>
+                    <tr
+                      key={`${d.nomor}-${d.tahun}-${i}`}
+                      className="text-sm text-neutral-800"
+                    >
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.tahun}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.nomor}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.file}
+                      </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         <div className="flex justify-end gap-1">
                           {d.file && d.file !== "-" && (
                             <>
-                              <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" onClick={() => handlePreviewFile(d.file)} title="Preview">
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                onClick={() => handlePreviewFile(d.file)}
+                                title="Preview"
+                              >
                                 <Eye className="h-4 w-4 text-blue-600" />
                               </button>
-                              <button type="button" onClick={() => handleDownloadFile(d.file)} className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50" title="Unduh">
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadFile(d.file)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                title="Unduh"
+                              >
                                 <Download className="h-4 w-4 text-emerald-600" />
                               </button>
                             </>
                           )}
-                          <button type="button" onClick={() => { setEditingNPWPIndex(i); setOpenNPWP(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingNPWPIndex(i);
+                              setOpenNPWP(true);
+                            }}
+                            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                            title="Edit"
+                          >
                             <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
-                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => handleDeleteNPWP(i)} title="Hapus">
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
+                            onClick={() => handleDeleteNPWP(i)}
+                            title="Hapus"
+                          >
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
@@ -707,41 +855,84 @@ export default function LegalitasTab() {
             <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
-                  <th className="border-b border-neutral-200 px-3 py-3">Tahun</th>
-                  <th className="border-b border-neutral-200 px-3 py-3">Nomor</th>
-                  <th className="border-b border-neutral-200 px-3 py-3">File</th>
-                  <th className="border-b border-neutral-200 px-3 py-3 text-right">Aksi</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Tahun
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nomor
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    File
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">
+                    Aksi
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {state.nib.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-3 py-4 text-center text-sm text-neutral-400">
+                    <td
+                      colSpan={4}
+                      className="px-3 py-4 text-center text-sm text-neutral-400"
+                    >
                       Tidak ada data yang ditambahkan
                     </td>
                   </tr>
                 ) : (
                   state.nib.map((d, i) => (
-                    <tr key={`${d.nomor}-${d.tahun}-${i}`} className="text-sm text-neutral-800">
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.tahun}</td>
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.nomor}</td>
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.file}</td>
+                    <tr
+                      key={`${d.nomor}-${d.tahun}-${i}`}
+                      className="text-sm text-neutral-800"
+                    >
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.tahun}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.nomor}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.file}
+                      </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         <div className="flex justify-end gap-1">
                           {d.file && d.file !== "-" && (
                             <>
-                              <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" onClick={() => handlePreviewFile(d.file)} title="Preview">
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                onClick={() => handlePreviewFile(d.file)}
+                                title="Preview"
+                              >
                                 <Eye className="h-4 w-4 text-blue-600" />
                               </button>
-                              <button type="button" onClick={() => handleDownloadFile(d.file)} className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50" title="Unduh">
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadFile(d.file)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                title="Unduh"
+                              >
                                 <Download className="h-4 w-4 text-emerald-600" />
                               </button>
                             </>
                           )}
-                          <button type="button" onClick={() => { setEditingNIBIndex(i); setOpenNIB(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingNIBIndex(i);
+                              setOpenNIB(true);
+                            }}
+                            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                            title="Edit"
+                          >
                             <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
-                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => handleDeleteNIB(i)} title="Hapus">
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
+                            onClick={() => handleDeleteNIB(i)}
+                            title="Hapus"
+                          >
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
@@ -767,41 +958,90 @@ export default function LegalitasTab() {
             <table className="min-w-full w-full border-separate border-spacing-0">
               <thead>
                 <tr className="bg-neutral-50 text-left text-sm font-semibold text-neutral-700">
-                  <th className="border-b border-neutral-200 px-3 py-3">Tahun</th>
-                  <th className="border-b border-neutral-200 px-3 py-3">Nama</th>
-                  <th className="border-b border-neutral-200 px-3 py-3">File</th>
-                  <th className="border-b border-neutral-200 px-3 py-3 text-right">Aksi</th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Tahun
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nama
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    Nomor
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3">
+                    File
+                  </th>
+                  <th className="border-b border-neutral-200 px-3 py-3 text-right">
+                    Aksi
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {state.dokumenAsetDesa.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-3 py-4 text-center text-sm text-neutral-400">
+                    <td
+                      colSpan={5}
+                      className="px-3 py-4 text-center text-sm text-neutral-400"
+                    >
                       Tidak ada data yang ditambahkan
                     </td>
                   </tr>
                 ) : (
                   state.dokumenAsetDesa.map((d, i) => (
-                    <tr key={`${d.nama}-${d.tahun}-${i}`} className="text-sm text-neutral-800">
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.tahun}</td>
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.nama}</td>
-                      <td className="border-b border-neutral-200 px-3 py-2">{d.file}</td>
+                    <tr
+                      key={`${d.nama}-${d.tahun}-${i}`}
+                      className="text-sm text-neutral-800"
+                    >
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.tahun}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.nama}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.nomor || "-"}
+                      </td>
+                      <td className="border-b border-neutral-200 px-3 py-2">
+                        {d.file}
+                      </td>
                       <td className="border-b border-neutral-200 px-3 py-2">
                         <div className="flex justify-end gap-1">
                           {d.file && d.file !== "-" && (
                             <>
-                              <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" onClick={() => handlePreviewFile(d.file)} title="Preview">
+                              <button
+                                type="button"
+                                className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                                onClick={() => handlePreviewFile(d.file)}
+                                title="Preview"
+                              >
                                 <Eye className="h-4 w-4 text-blue-600" />
                               </button>
-                              <button type="button" onClick={() => handleDownloadFile(d.file)} className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50" title="Unduh">
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadFile(d.file)}
+                                className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
+                                title="Unduh"
+                              >
                                 <Download className="h-4 w-4 text-emerald-600" />
                               </button>
                             </>
                           )}
-                          <button type="button" onClick={() => { setEditingAsetIndex(i); setOpenAset(true); }} className="inline-flex items-center rounded p-1.5 hover:bg-blue-50" title="Edit">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingAsetIndex(i);
+                              setOpenAset(true);
+                            }}
+                            className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
+                            title="Edit"
+                          >
                             <Pencil className="h-4 w-4 text-blue-600" />
                           </button>
-                          <button type="button" className="inline-flex items-center rounded p-1.5 hover:bg-red-50" onClick={() => handleDeleteAset(i)} title="Hapus">
+                          <button
+                            type="button"
+                            className="inline-flex items-center rounded p-1.5 hover:bg-red-50"
+                            onClick={() => handleDeleteAset(i)}
+                            title="Hapus"
+                          >
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
@@ -953,7 +1193,8 @@ export default function LegalitasTab() {
                       {formatCurrency(
                         state.perdesPenyertaanModal.reduce(
                           (sum, d) =>
-                            sum + (typeof d.nominal === "number" ? d.nominal : 0),
+                            sum +
+                            (typeof d.nominal === "number" ? d.nominal : 0),
                           0
                         )
                       )}
@@ -972,7 +1213,9 @@ export default function LegalitasTab() {
 
       {/* Save */}
       <div className="col-span-full flex justify-end">
-        <Button onClick={onSave}>Update</Button>
+        <Button onClick={onSave} disabled={isSaving}>
+          {isSaving ? "Menyimpan..." : "Update"}
+        </Button>
       </div>
 
       {/* Modals */}
@@ -990,6 +1233,7 @@ export default function LegalitasTab() {
         initialData={
           editingADIndex !== null
             ? {
+                id: state.anggaranDasar[editingADIndex].id,
                 tahun: state.anggaranDasar[editingADIndex].tahun,
                 nama: state.anggaranDasar[editingADIndex].nama,
                 nominal: state.anggaranDasar[editingADIndex].nominal,
@@ -1013,6 +1257,7 @@ export default function LegalitasTab() {
         initialData={
           editingARTIndex !== null
             ? {
+                id: state.anggaranRumahTangga[editingARTIndex].id,
                 tahun: state.anggaranRumahTangga[editingARTIndex].tahun,
                 nama: state.anggaranRumahTangga[editingARTIndex].nama,
                 nominal: state.anggaranRumahTangga[editingARTIndex].nominal,
@@ -1038,10 +1283,12 @@ export default function LegalitasTab() {
         initialData={
           editingPerdesIndex !== null
             ? {
+                id: state.perdesPenyertaanModal[editingPerdesIndex].id,
                 tahun: state.perdesPenyertaanModal[editingPerdesIndex].tahun,
                 nama: state.perdesPenyertaanModal[editingPerdesIndex].nama,
                 nomor: state.perdesPenyertaanModal[editingPerdesIndex].nomor,
-                nominal: state.perdesPenyertaanModal[editingPerdesIndex].nominal,
+                nominal:
+                  state.perdesPenyertaanModal[editingPerdesIndex].nominal,
                 file: state.perdesPenyertaanModal[editingPerdesIndex].file,
               }
             : undefined
@@ -1063,6 +1310,7 @@ export default function LegalitasTab() {
         initialData={
           editingAHUIndex !== null
             ? {
+                id: state.ahuBadanHukum[editingAHUIndex].id,
                 tahun: state.ahuBadanHukum[editingAHUIndex].tahun,
                 nama: "AHU Badan Hukum",
                 nomor: state.ahuBadanHukum[editingAHUIndex].nomor,
@@ -1087,6 +1335,7 @@ export default function LegalitasTab() {
         initialData={
           editingNPWPIndex !== null
             ? {
+                id: state.npwp[editingNPWPIndex].id,
                 tahun: state.npwp[editingNPWPIndex].tahun,
                 nama: "NPWP",
                 nomor: state.npwp[editingNPWPIndex].nomor,
@@ -1111,6 +1360,7 @@ export default function LegalitasTab() {
         initialData={
           editingNIBIndex !== null
             ? {
+                id: state.nib[editingNIBIndex].id,
                 tahun: state.nib[editingNIBIndex].tahun,
                 nama: "NIB",
                 nomor: state.nib[editingNIBIndex].nomor,
@@ -1130,11 +1380,15 @@ export default function LegalitasTab() {
         onSave={saveAset}
         title="Tambah Dokumen Pemanfaatan Aset Desa"
         namaLabel="Nama Dokumen"
+        showNomor
+        nomorLabel="Nomor Dokumen"
         initialData={
           editingAsetIndex !== null
             ? {
+                id: state.dokumenAsetDesa[editingAsetIndex].id,
                 tahun: state.dokumenAsetDesa[editingAsetIndex].tahun,
                 nama: state.dokumenAsetDesa[editingAsetIndex].nama,
+                nomor: state.dokumenAsetDesa[editingAsetIndex].nomor,
                 file: state.dokumenAsetDesa[editingAsetIndex].file,
               }
             : undefined
@@ -1144,8 +1398,15 @@ export default function LegalitasTab() {
       <SaveResultModal
         open={savedOpen}
         onClose={() => setSavedOpen(false)}
-        title="Data Struktur Tersimpan"
+        title="Data Legalitas Tersimpan"
         autoCloseMs={1500}
+      />
+
+      <WarningModal
+        open={showWarning}
+        onClose={() => setShowWarning(false)}
+        title="Gagal Menyimpan"
+        message="Terjadi kesalahan saat menyimpan data legalitas. Silakan coba lagi."
       />
 
       {/* Confirm Delete Dialogs */}
@@ -1289,7 +1550,7 @@ export default function LegalitasTab() {
               <p className="mb-2">File: {fileToPreview}</p>
               {isUrl(fileToPreview) ? (
                 <iframe
-                  src={fileToPreview}
+                  src={getFileUrl(fileToPreview)}
                   className="h-[70vh] w-full border"
                   title="Preview dokumen"
                 />

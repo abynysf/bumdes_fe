@@ -10,6 +10,7 @@ type DokumenData = {
   nama: string;
   nomor: string;
   file?: string;
+  fileBlob?: string;
 };
 
 type Props = {
@@ -24,10 +25,15 @@ export default function AddDokumenModal({ open, onClose, onSave, initialData }: 
   const [nama, setNama] = useState("");
   const [nomor, setNomor] = useState("");
   const [file, setFile] = useState<string>("");
+  const [fileBlob, setFileBlob] = useState<string>("");
   const [touched, setTouched] = useState(false);
 
   // upload modal visibility
   const [openUpload, setOpenUpload] = useState(false);
+
+  // Note: We don't revoke blob URL on unmount because it's passed to context
+  // and needs to remain valid for preview. Revocation happens only when
+  // a new file replaces it (in onUpload handler below).
 
   useEffect(() => {
     if (open) {
@@ -37,12 +43,14 @@ export default function AddDokumenModal({ open, onClose, onSave, initialData }: 
         setNama(initialData.nama);
         setNomor(initialData.nomor);
         setFile(initialData.file ?? "");
+        setFileBlob(initialData.fileBlob ?? "");
       } else {
         // Add mode - reset all fields
         setTahun("");
         setNama("");
         setNomor("");
         setFile("");
+        setFileBlob("");
       }
       setTouched(false);
     }
@@ -59,6 +67,7 @@ export default function AddDokumenModal({ open, onClose, onSave, initialData }: 
       nama,
       nomor,
       file: file || undefined,
+      fileBlob: fileBlob || undefined,
     });
 
     // Reset form
@@ -66,6 +75,7 @@ export default function AddDokumenModal({ open, onClose, onSave, initialData }: 
     setNama("");
     setNomor("");
     setFile("");
+    setFileBlob("");
     setTouched(false);
     onClose();
   }
@@ -149,7 +159,12 @@ export default function AddDokumenModal({ open, onClose, onSave, initialData }: 
         open={openUpload}
         onClose={() => setOpenUpload(false)}
         onUpload={(f) => {
+          // Revoke previous blob URL if exists
+          if (fileBlob) {
+            URL.revokeObjectURL(fileBlob);
+          }
           setFile(f.name);
+          setFileBlob(URL.createObjectURL(f));
           setOpenUpload(false);
         }}
         currentFileName={file || undefined}

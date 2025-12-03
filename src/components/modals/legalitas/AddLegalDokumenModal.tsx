@@ -6,6 +6,7 @@ import YearPicker from "../../ui/YearPicker";
 import UploadDokumenModal from "../UploadDokumenModal";
 
 export type LegalDokumenPayload = {
+  id?: number;
   tahun: number;
   nama: string;
   nomor?: string;
@@ -91,6 +92,7 @@ export default function AddLegalDokumenModal({
     if (tahun === "" || !nama) return;
 
     const payload: LegalDokumenPayload = {
+      id: initialData?.id,
       tahun,
       nama,
       file: file || "-",

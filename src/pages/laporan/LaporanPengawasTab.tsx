@@ -6,7 +6,7 @@ import AddLaporanPengawasModal, {
 } from "../../components/modals/AddLaporanPengawasModal";
 import SaveResultModal from "../../components/modals/SaveResultModal";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
-import { Eye, Download, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useLaporan } from "../../contexts/LaporanContext";
 
 // Helper function to check if string is URL
@@ -77,13 +77,6 @@ export default function LaporanPengawasTab() {
     }
   }, []);
 
-  const downloadFile = useCallback((file: string) => {
-    if (isUrl(file)) {
-      window.open(file, "_blank", "noopener,noreferrer");
-    } else {
-      alert("Tidak ada URL. Nama file tersimpan: " + file);
-    }
-  }, []);
 
   // Prepare table data with index
   const tableData = laporanPengawasData.map((item, idx) => ({
@@ -159,55 +152,9 @@ export default function LaporanPengawasTab() {
       align: "right",
       cell: (row) => {
         const rowIndex = row._index;
-        const hasFileLaporan = row.fileLaporan && row.fileLaporan !== "-";
-        const hasDokumentasi = row.dokumentasi && row.dokumentasi !== "-";
 
         return (
           <div className="flex justify-end gap-1">
-            {hasFileLaporan && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => handlePreviewFile(row.fileLaporan)}
-                  className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                  title="Preview Laporan"
-                >
-                  <Eye className="h-4 w-4 text-blue-600" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => downloadFile(row.fileLaporan)}
-                  className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
-                  title="Download Laporan"
-                >
-                  <Download className="h-4 w-4 text-emerald-600" />
-                </button>
-              </>
-            )}
-
-            {hasDokumentasi && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => handlePreviewFile(row.dokumentasi)}
-                  className="inline-flex items-center rounded p-1.5 hover:bg-blue-50"
-                  title="Preview Dokumentasi"
-                >
-                  <Eye className="h-4 w-4 text-blue-600" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => downloadFile(row.dokumentasi)}
-                  className="inline-flex items-center rounded p-1.5 hover:bg-emerald-50"
-                  title="Download Dokumentasi"
-                >
-                  <Download className="h-4 w-4 text-emerald-600" />
-                </button>
-              </>
-            )}
-
             <button
               type="button"
               onClick={() => {
@@ -219,7 +166,6 @@ export default function LaporanPengawasTab() {
             >
               <Pencil className="h-4 w-4 text-blue-600" />
             </button>
-
             <button
               type="button"
               onClick={() => handleDelete(rowIndex)}
@@ -231,7 +177,7 @@ export default function LaporanPengawasTab() {
           </div>
         );
       },
-      width: "w-48",
+      width: "w-24",
     },
   ];
 

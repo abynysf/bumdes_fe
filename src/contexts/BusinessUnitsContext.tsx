@@ -56,8 +56,50 @@ export function BusinessUnitsProvider({ children }: { children: ReactNode }) {
       terakhirUpdate: "27/10/2025",
     },
   ]);
-  const [sopDocuments, setSopDocuments] = useState<SOPDocument[]>([]);
-  const [activityDocs, setActivityDocs] = useState<ActivityDoc[]>([]);
+  // === LOCAL FALLBACK MODE - Mock Data ===
+  const [sopDocuments, setSopDocuments] = useState<SOPDocument[]>([
+    {
+      unitNama: "Toko Sumber Rejeki",
+      tahun: 2023,
+      nama: "SOP Operasional Toko",
+      file: "sop_operasional_toko.pdf",
+    },
+    {
+      unitNama: "Toko Sumber Rejeki",
+      tahun: 2023,
+      nama: "SOP Pelayanan Pelanggan",
+      file: "sop_pelayanan.pdf",
+    },
+    {
+      unitNama: "Toko Sumber Rejeki",
+      tahun: 2024,
+      nama: "SOP Manajemen Stok",
+      file: "sop_stok.pdf",
+    },
+  ]);
+  const [activityDocs, setActivityDocs] = useState<ActivityDoc[]>([
+    {
+      unitNama: "Toko Sumber Rejeki",
+      tahun: 2024,
+      nama: "Laporan Kegiatan Bulanan",
+      deskripsi: "Laporan aktivitas toko bulan Oktober 2024",
+      file: "laporan_oktober_2024.pdf",
+    },
+    {
+      unitNama: "Toko Sumber Rejeki",
+      tahun: 2024,
+      nama: "Dokumentasi Pembukaan Cabang",
+      deskripsi: "Foto dan laporan pembukaan cabang baru",
+      file: "pembukaan_cabang.pdf",
+    },
+    {
+      unitNama: "Toko Sumber Rejeki",
+      tahun: 2023,
+      nama: "Pelatihan Karyawan",
+      deskripsi: "Dokumentasi pelatihan pelayanan pelanggan",
+      file: "pelatihan_2023.pdf",
+    },
+  ]);
 
   return (
     <BusinessUnitsContext.Provider

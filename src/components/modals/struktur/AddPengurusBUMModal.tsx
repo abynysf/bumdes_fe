@@ -4,6 +4,7 @@ import TextInput from "../../ui/TextInput";
 import Button from "../../ui/Button";
 
 type PersonData = {
+  id?: number;
   jabatan?: string;
   unit?: string;
   nama: string;
@@ -87,6 +88,7 @@ export default function AddPengurusBUMModal({
     if (!requiredFieldsFilled) return;
 
     const payload: PersonData = {
+      id: initialData?.id,
       nama,
       pekerjaan,
       nomorTelepon,
@@ -158,7 +160,10 @@ export default function AddPengurusBUMModal({
             label="Nomor Telepon Pengurus"
             placeholder="Masukkan nomor telepon"
             value={nomorTelepon}
-            onChange={(e: any) => setNomorTelepon(e.target?.value ?? e)}
+            onChange={(e: any) => {
+              const value = e.target?.value ?? e;
+              setNomorTelepon(value.replace(/\D/g, ''));
+            }}
             required
             touched={touched}
           />
@@ -167,8 +172,9 @@ export default function AddPengurusBUMModal({
         {ShowGaji && (
           <div>
             <TextInput
+              type="number"
               label="Gaji"
-              placeholder="Masukkan gaji (contoh: Rp 2.500.000)"
+              placeholder="Contoh: 2500000"
               value={gaji}
               onChange={(e: any) => setGaji(e.target?.value ?? e)}
               required

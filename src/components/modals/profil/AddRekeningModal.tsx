@@ -12,6 +12,7 @@ type Rekening = {
   ketahananPangan?: boolean;
   keterangan?: string;
   file?: string;
+  fileBlob?: string;
 };
 
 type Props = {
@@ -35,10 +36,15 @@ export default function AddRekeningModal({ open, onClose, onSave, initialData }:
   const [nomor, setNomor] = useState("");
   const [ketahanan, setKetahanan] = useState(false);
   const [file, setFile] = useState("");
+  const [fileBlob, setFileBlob] = useState("");
   const [touched, setTouched] = useState(false);
 
   // Upload modal visibility
   const [openUpload, setOpenUpload] = useState(false);
+
+  // Note: We don't revoke blob URL on unmount because it's passed to context
+  // and needs to remain valid for preview. Revocation happens only when
+  // a new file replaces it (in onUpload handler below).
 
   useEffect(() => {
     if (open) {
@@ -49,6 +55,7 @@ export default function AddRekeningModal({ open, onClose, onSave, initialData }:
         setNomor(initialData.nomor);
         setKetahanan(initialData.ketahananPangan ?? false);
         setFile(initialData.file ?? "");
+        setFileBlob(initialData.fileBlob ?? "");
       } else {
         // Add mode - reset all fields
         setBank("");
@@ -56,6 +63,7 @@ export default function AddRekeningModal({ open, onClose, onSave, initialData }:
         setNomor("");
         setKetahanan(false);
         setFile("");
+        setFileBlob("");
       }
       setTouched(false);
     }
@@ -74,6 +82,7 @@ export default function AddRekeningModal({ open, onClose, onSave, initialData }:
       ketahananPangan: ketahanan,
       keterangan: ketahanan ? "Ketahanan Pangan" : undefined,
       file: file || undefined,
+      fileBlob: fileBlob || undefined,
     });
     onClose(); // will trigger the reset next time it opens
   }
@@ -169,7 +178,12 @@ export default function AddRekeningModal({ open, onClose, onSave, initialData }:
         open={openUpload}
         onClose={() => setOpenUpload(false)}
         onUpload={(f) => {
+          // Revoke previous blob URL if exists
+          if (fileBlob) {
+            URL.revokeObjectURL(fileBlob);
+          }
           setFile(f.name);
+          setFileBlob(URL.createObjectURL(f));
           setOpenUpload(false);
         }}
         currentFileName={file || undefined}
